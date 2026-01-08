@@ -1,0 +1,32 @@
+import express, { json , urlencoded} from 'express'
+import cors from 'cors'
+import {LIMIT} from './constants.js'
+import cookieParser from 'cookie-parser'
+
+const app = express()
+app.use(cors(
+    {
+        origin : true,
+        credentials : true
+    }
+))
+
+app.use(json({
+    limit : LIMIT
+}))
+
+app.use(urlencoded({
+    extended : true,
+    limit : LIMIT
+}))
+
+app.use(cookieParser())
+
+app.get('/', (req, res) => {
+    res.send('ReviCode is Ready...!!! So are you???')
+})
+
+
+export {
+    app
+}
