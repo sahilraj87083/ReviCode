@@ -7,10 +7,16 @@ import {User} from '../models/user.model.js'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 import { createNewUserService, generateAccessAndRefereshTokensService } from '../services/user.services.js'
-
+import {validationResult} from 'express-validator'
 
 
 const registerUser = asyncHandler(async(req, res) => {
+
+    const errors = validationResult(req)
+    if(!errors.isEmpty()){
+        throw new ApiError(400,"Validation failed", errors.array() )
+    }
+
     const {username, fullName, email, password} = req.body
 
     if([username, fullName, email, password].some((field) => field.trim() === "")){
@@ -48,6 +54,12 @@ const registerUser = asyncHandler(async(req, res) => {
 })
 
 const loginUser = asyncHandler(async(req, res) => {
+
+    const errors = validationResult(req)
+    if(!errors.isEmpty()){
+        throw new ApiError(400, "Validation failed", errors.array() )
+    }
+
     const {email, password} = req.body
 
     if(!email){
@@ -56,7 +68,7 @@ const loginUser = asyncHandler(async(req, res) => {
 
     const user = await User.findOne({
         email : email
-    })
+    }).select('+password')
 
     if(!user){
          throw new ApiError(404, "User does not exist")
