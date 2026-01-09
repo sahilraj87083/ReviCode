@@ -4,10 +4,30 @@ import {ApiError} from '../utils/ApiError.utils.js'
 import {ApiResponse} from '../utils/ApiResponse.utils.js'
 import mongoose from 'mongoose'
 import {validationResult} from 'express-validator'
-import {normalizeUrl} from '../services/question.services.js'
+import {normalizeUrlservice, uploadQuestionService} from '../services/question.services.js'
 
 
-const createQuestion = asyncHandler(async (req, res) => {
+const uploadQuestion = asyncHandler(async (req, res) => {
+
+    const { title, platform, problemUrl, difficulty, topics } = req.body;
+
+    if (!title?.trim() || !platform || !problemUrl?.trim() || !difficulty) {
+        throw new ApiError(400, "All required fields must be provided");
+    }
+
+    const question = await uploadQuestionService({
+        ownerId : req.user._id,
+        title : title,
+        platform : platform,
+        problemUrl : problemUrl,
+        difficulty : difficulty,
+        topics : topics
+
+    })
+
+    return res
+    .status(201)
+    .json(new ApiResponse(201, "Question added successfully", question));
 
 })
 
@@ -29,7 +49,7 @@ const deleteQuestion = asyncHandler(async (req, res) => {
 
 
 export {
-    createQuestion,
+    uploadQuestion,
     getAllQuestions,
     getQuestionById,
     updateQuestion,

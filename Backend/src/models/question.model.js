@@ -31,6 +31,11 @@ const questionSchema = new mongoose.Schema(
             required: true,
             index: true,
         },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
         difficulty: {
             type: String,
             enum: ["easy", "medium", "hard"],
@@ -47,7 +52,7 @@ const questionSchema = new mongoose.Schema(
 
 
 questionSchema.index(
-    { ownerId: 1, problemUrlNormalized: 1 },
+    { ownerId: 1, problemUrlNormalized: 1, isDeleted: 1 },
     { unique: true }
 );
 
