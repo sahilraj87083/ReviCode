@@ -60,9 +60,40 @@ const updateQuestion = asyncHandler(async (req, res) => {
 })
 
 const deleteQuestion = asyncHandler(async (req, res) => {
+    const {questionId} = req.params
 
+    if(!isValidObjectId(questionId)){
+        throw new ApiError(400, "Invalid question ID");
+    }
+
+    const question = await Question.findOneAndUpdate(
+        {
+            _id : questionId,
+            ownerId : req.user._id,
+            isDeleted : false
+        },
+        {
+            $set : {
+                isDeleted : true
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    if (!question) {
+        throw new ApiError(404, "Question not found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, "Question removed", {}));
 })
 
+
+// later
+//  recently deleated
 
 export {
     uploadQuestion,
