@@ -196,7 +196,7 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
         )
     }
 
-    const user = await User.findById(req.user?._id)
+    const user = await User.findById(req.user?._id).select("+password +refreshToken");
 
     if (!user) {
         throw new ApiError(404, "User not found");
@@ -205,15 +205,24 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
     const isOldPasswordValid = await user.verifyPassword(oldPassword)
 
     if(!isOldPasswordValid){
-        throw new ApiError(400, "Invalid old password")
+        throw new ApiError(401, "Invalid old password")
     }
 
+    // Update password
     user.password = newPassword
+
+    // Revoke all sessions
+    user.refreshToken = undefined;
+
     await user.save()
+
+    // Clear cookies → force re-login
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
 
     return res
     .status(200)
-    .json(new ApiResponse(200, "Password changed successfully", {}))
+    .json(new ApiResponse(200, "Password changed successfully. Please login again.", {}))
 })
 
 const getCurrentUser = asyncHandler(async(req, res) => {
