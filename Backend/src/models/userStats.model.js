@@ -44,4 +44,4 @@ const userStatsSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export const UserStats = mongoose.model("UserStats", userStatsSchema);
+export const Userstat = mongoose.model("Userstat", userStatsSchema);

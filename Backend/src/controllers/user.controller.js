@@ -6,6 +6,7 @@ import { generateAccessAndRefereshTokens } from '../utils/generateToken.utils.js
 import {hashToken} from '../utils/hashToken.utils.js'
 import {User} from '../models/user.model.js'
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
 
 
 
@@ -401,6 +402,123 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     )
 })
 
+const getUserProfile = asyncHandler( async (req, res) => {
+    // get all the details of user by username
+    const {username} = req.params;
+    
+    if(!username || typeof username !== "string" || !username?.trim()){
+        throw new ApiError(400, "Username is required")
+    }
+
+    const viewerId = req.user?._id || null; // may be public request
+
+    const profile = await User.aggregate([
+        {
+            $match : {
+                username : username.toLowerCase(),
+                $or : [
+                    { isActive : true },
+                    {isActive : { $exists : false}}
+                ]
+            }
+        },
+        // Followers count
+        {
+            $lookup : {
+                from: 'follows',
+                localField : '_id',
+                foreignField : 'followingId',
+                as : 'followers'
+            }
+        },
+        //  Following count
+        {
+            $lookup : {
+                from : 'follows',
+                localField : '_id',
+                foreignField : 'followerId',
+                as : 'following'
+            }
+        },
+        // User stats
+        {
+            $lookup : {
+                from : 'userstats',
+                localField : '_id',
+                foreignField : 'userId',
+                as : 'stats'
+            }
+        },
+        // Collections
+        {
+            $lookup : {
+                from : 'collections',
+                localField : '_id',
+                foreignField : 'ownerId',
+                as : 'collections'
+            }
+        },
+        // Is viewer following this user?
+
+        ...(viewerId ?
+            [
+                {
+                    $lookup : {
+                        from : 'follows',
+                        let : { profileUserId : '$_id'},
+                        pipeline : [
+                            {
+                                $match : {
+                                    $expr : {
+                                        $and : [
+                                            { $eq : ["$followingId" , '$$profileUserId']},
+                                            { $eq : ["$followerId" , new mongoose.Types.ObjectId(viewerId)]}
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as : "viewerFollow",
+                    }
+                }
+            ]
+            : []
+        ),
+        {
+            $addFields : {
+                followersCount: { $size: "$followers" },
+                followingCount: { $size: "$following" },
+                isFollowedByViewer : {
+                    $cond: {
+                        if: { $gt: [{ $size: { $ifNull: ["$viewerFollow", []] } }, 0] },
+                        then: true,
+                        else: false,
+                    }
+                },
+                stats: { $arrayElemAt: ["$stats", 0] },
+            }
+        },
+        // Remove sensitive fields
+        {
+            $project : {
+                password: 0,
+                refreshToken: 0,
+                followers: 0,
+                following: 0,
+                viewerFollow: 0,
+            }
+        }
+    ])
+
+
+    if (!profile || !profile.length) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, "User profile fetched successfully", profile[0])
+    );
+})
 
 // later 
 // verifyEmail
@@ -417,7 +535,8 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserProfile
 }
 
 
