@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
                 public_id: String,
                 url: String //cloudinary url
             },
-            required: true
         },
         coverImage: {
             type: {
