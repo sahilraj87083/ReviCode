@@ -266,7 +266,71 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
 })
 
 const updateUserAvatar = asyncHandler(async(req, res) => {
+     const avatarLocalPath = req.file?.path
 
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is missing")
+    }
+
+    if (!req.file.mimetype.startsWith("image/")) {
+        //const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        throw new ApiError(400, "Only image files are allowed");
+    }
+
+    // 1️ get current user FIRST (to capture old avatar)
+    const user = await User.findById(req.user._id).select("avatar");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const oldAvatarPublicId = user.avatar?.public_id;
+
+    // Upload new avatar
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+    if (!avatar || !avatar.public_id) {
+        throw new ApiError(400, "Error while uploading avatar on Cloudinary")
+    }
+    let updatedUser;
+    try {
+        updatedUser = await User.findByIdAndUpdate(
+            req.user?._id,
+            {
+                $set : {
+                    avatar : {
+                        public_id : avatar.public_id,
+                        url : avatar.secure_url
+                    }
+                }
+            },
+            {
+                new : true
+            }
+        ).select('-password -refreshToken')
+    } catch (error) {
+
+        // Rollback new upload if DB update fails
+        await deleteFromCloudinary(avatar.public_id);
+
+        throw new ApiError(500, "Error updating avatar in database")
+    }
+
+    if(!updatedUser){
+        throw new ApiError(500, "Error updating avatar in database")
+    }
+
+    //Delete old avatar from Cloudinary
+    if(oldAvatarPublicId){
+        // Deletion should never block user success.
+        await deleteFromCloudinary(oldAvatarPublicId).catch(() => {});
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, "Avatar image updated successfully", updatedUser)
+    )
 })
 
 const updateUserCoverImage = asyncHandler(async(req, res) => {
