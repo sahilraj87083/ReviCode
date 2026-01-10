@@ -101,7 +101,24 @@ const reorderCollectionQuestions = asyncHandler( async (req, res) => {
 })
 
 const removeAllQuestions = asyncHandler( async (req, res) => {
-    
+    const { collectionId } = req.params;
+
+    await validateCollection(collectionId, req.user._id);
+
+    const result = await CollectionQuestion.deleteMany({ collectionId });
+
+    await Collection.updateOne(
+        { _id: collectionId },
+        { $set: { questionsCount: 0 } }
+    );
+
+    return res.status(200).json(
+            new ApiResponse(200, "All questions removed", 
+            {
+                removed: result.deletedCount,
+            }
+        )
+    );
 })
 
 
