@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-import mongoose from "mongoose";
-
 const collectionSchema = new mongoose.Schema(
     {
         ownerId: {
@@ -16,6 +14,12 @@ const collectionSchema = new mongoose.Schema(
             required: true,
             trim: true,
             maxlength: 100,
+        },
+
+        nameLower: {
+            type: String,
+            required: true,
+            index: true,
         },
 
         description: {
@@ -37,5 +41,10 @@ const collectionSchema = new mongoose.Schema(
 );
 
 collectionSchema.index({ ownerId: 1, name: 1 });
+collectionSchema.index(
+    { ownerId: 1, nameLower: 1 },
+    { unique: true }
+);
+
 
 export const Collection = mongoose.model("Collection", collectionSchema);

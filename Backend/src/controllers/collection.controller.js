@@ -3,10 +3,29 @@ import {ApiError} from '../utils/ApiError.utils.js'
 import {ApiResponse} from '../utils/ApiResponse.utils.js'
 import { isValidObjectId } from 'mongoose'
 import { Collection } from '../models/collection.model.js'
+import { createCollectionService } from '../services/collection.services.js'
 
 
 const createCollection = asyncHandler( async (req, res) => {
+    const {name , description, isPublic} = req.body
 
+    if (!name || !name.trim()) {
+        throw new ApiError(400, "Collection name is required");
+    }
+    const isPublicSafe = typeof isPublic === "boolean" ? isPublic : false;
+
+    const collection = await createCollectionService(
+        {
+            ownerId : req.user._id,
+            name : name.trim(),
+            description : description?.trim() || "",
+            isPublic : isPublicSafe
+        }
+    )
+
+    return res
+        .status(201)
+        .json(new ApiResponse(201, "Collection created", collection));
 })
 
 const deleteCollections = asyncHandler( async (req, res) => {
