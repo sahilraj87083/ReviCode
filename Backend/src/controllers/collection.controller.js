@@ -1,7 +1,7 @@
 import {asyncHandler} from '../utils/AsyncHandler.utils.js'
 import {ApiError} from '../utils/ApiError.utils.js'
 import {ApiResponse} from '../utils/ApiResponse.utils.js'
-import { isValidObjectId } from 'mongoose'
+import mongoose, { isValidObjectId } from 'mongoose'
 import { Collection } from '../models/collection.model.js'
 import {CollectionQuestion} from '../models/collectionQuestion.model.js'
 import { createCollectionService } from '../services/collection.services.js'
@@ -141,7 +141,69 @@ const updateCollection = asyncHandler( async (req, res) => {
 })
 
 const getCollectionQuestions = asyncHandler( async (req, res) => {
-    
+    const {collectionId} = req.params
+
+    if(!isValidObjectId(collectionId)){
+        throw new ApiError(400, "Invalid collection ID");
+    }
+
+    const collection = await Collection.findOne({
+        _id: collectionId,
+        ownerId: req.user._id,
+    });
+
+    if (!collection) {
+        throw new ApiError(404, "Collection not found");
+    }
+
+    const questions = await CollectionQuestion.aggregate(
+        [
+            { 
+                $match : {
+                    collectionId : new mongoose.Types.ObjectId(collectionId)
+                }
+            },
+            {
+                $sort : {
+                    order : 1,
+                    addedAt : -1
+                }
+            },
+            {
+                $lookup : {
+                    from: "questions",
+                    localField: "questionId",
+                    foreignField: "_id",
+                    as: "question",
+                }
+            },
+            {
+                $unwind : "$question"
+            },
+            {
+                $match : {
+                    "question.isDeleted": false
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    order: 1,
+                    addedAt: 1,
+                    question: 1,
+                }
+            }
+        ]
+    )
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "Collection questions fetched", {
+                collection,
+                questions,
+            })
+        );
 })
 
 
