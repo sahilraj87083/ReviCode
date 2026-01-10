@@ -3,6 +3,7 @@ import {ApiError} from '../utils/ApiError.utils.js'
 import {ApiResponse} from '../utils/ApiResponse.utils.js'
 import { isValidObjectId } from 'mongoose'
 import { Collection } from '../models/collection.model.js'
+import {CollectionQuestion} from '../models/collectionQuestion.model.js'
 import { createCollectionService } from '../services/collection.services.js'
 
 
@@ -29,7 +30,28 @@ const createCollection = asyncHandler( async (req, res) => {
 })
 
 const deleteCollections = asyncHandler( async (req, res) => {
-    
+    const {collectionId} = req.params
+
+    if(!isValidObjectId(collectionId)){
+        throw new ApiError(400, "Invalid collection ID");
+    }
+
+    const collection = await Collection.findOneAndDelete({
+        _id: collectionId,
+        ownerId: req.user._id,
+    });
+
+    if (!collection) {
+        throw new ApiError(404, "Collection not found");
+    }
+
+    // Remove all question links (safe cleanup)
+    await CollectionQuestion.deleteMany({ collectionId: collectionId });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Collection deleted"));
+
 })
 
 const getMyCollections = asyncHandler( async (req, res) => {
