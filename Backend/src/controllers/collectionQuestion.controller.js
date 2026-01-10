@@ -30,19 +30,19 @@ const addQuestionToCollection = asyncHandler( async (req, res) => {
     }
 
     try {
-        await Promise.all([
-            CollectionQuestion.create({
-                collectionId,
-                questionId
-            }),
+        
+        await CollectionQuestion.create({
+            collectionId,
+            questionId
+        }),
 
-            Collection.updateOne(
-                { _id : collectionId},
-                {$inc : {
-                    questionsCount : 1
-                }}
-            )
-        ])
+        await Collection.updateOne(
+            { _id : collectionId},
+            {$inc : {
+                questionsCount : 1
+            }}
+        )
+        
         
     } catch (error) {
 
