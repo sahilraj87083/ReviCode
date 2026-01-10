@@ -36,13 +36,19 @@ const collectionSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        }
     },
     { timestamps: true }
 );
 
 collectionSchema.index({ ownerId: 1, name: 1 });
 collectionSchema.index(
-    { ownerId: 1, nameLower: 1 },
+    { ownerId: 1, nameLower: 1, isDeleted: 1 },
     { unique: true }
 );
 

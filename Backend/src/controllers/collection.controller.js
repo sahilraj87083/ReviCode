@@ -33,7 +33,17 @@ const deleteCollections = asyncHandler( async (req, res) => {
 })
 
 const getMyCollections = asyncHandler( async (req, res) => {
-    
+
+    const collections = await Collection.find(
+        {
+            ownerId : req.user._id,
+            isDeleted : false
+        }
+    ).sort({createdAt : -1})
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Collections fetched", collections));
 })
 
 
