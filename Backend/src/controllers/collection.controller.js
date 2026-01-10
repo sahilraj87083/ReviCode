@@ -72,6 +72,50 @@ const getCollectionById = asyncHandler( async (req, res) => {
 
 const updateCollection = asyncHandler( async (req, res) => {
     
+    const {collectionId} = req.params
+    const { name, description, isPublic } = req.body;
+
+    if(!isValidObjectId(collectionId)){
+        throw new ApiError(400, "Invalid collection ID");
+    }
+
+    if (!name && !description && isPublic === undefined) {
+        throw new ApiError(400, "At least one field is required");
+    }
+
+    if (name && !name.trim()) {
+        throw new ApiError(400, "Collection name cannot be empty");
+    }
+
+    const update = {};
+    if (name){
+        update.name = name.trim();
+        update.nameLower = name.trim().toLowerCase();
+    }
+    if (description !== undefined) update.description = description.trim();
+    if (isPublic !== undefined) update.isPublic = isPublic;
+
+    const collection = await Collection.findOneAndUpdate(
+        {
+            _id : collectionId,
+            ownerId : req.user._id
+        },
+        {
+            $set : update
+        },
+        {
+            new : true,
+            runValidators : true
+        }
+    )
+
+    if (!collection) {
+        throw new ApiError(404, "Collection not found");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Collection updated", collection));
 })
 
 const getCollectionQuestions = asyncHandler( async (req, res) => {
