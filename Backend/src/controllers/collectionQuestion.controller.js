@@ -137,7 +137,48 @@ const bulkAddQuestions = asyncHandler( async (req, res) => {
 })
 
 const bulkRemoveQuestions = asyncHandler( async (req, res) => {
-    
+    const { collectionId } = req.params;
+    const { questionIds } = req.body;
+
+    if (!Array.isArray(questionIds) || questionIds.length === 0) {
+        throw new ApiError(400, "questionIds must be a non-empty array");
+    }
+
+    await validateCollection(collectionId, req.user._id);
+
+    const validIds = questionIds.filter(id => isValidObjectId(id));
+
+    if (validIds.length === 0) {
+        throw new ApiError(400, "No valid question IDs provided");
+    }
+
+    const result = await CollectionQuestion.deleteMany({
+        collectionId,
+        questionId: { $in: validIds },
+    });
+
+    if (result.deletedCount > 0) {
+        await Collection.updateOne(
+            { _id: collectionId },
+            [
+                {
+                    $set: {
+                        questionsCount: {
+                            $max: [{ $subtract: ["$questionsCount", result.deletedCount] },0]
+                        }
+                    }
+                }
+            ]
+        );
+
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, "Questions removed from collection", {
+            removed: result.deletedCount,
+            attempted: validIds.length,
+        })
+    );
 })
 
 const reorderCollectionQuestions = asyncHandler( async (req, res) => {
