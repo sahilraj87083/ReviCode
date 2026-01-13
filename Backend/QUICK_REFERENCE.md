@@ -51,6 +51,18 @@ All protected endpoints require `accessToken` cookie.
 | 13 | GET | `/question/:questionId` | Get specific question |
 | 14 | PATCH | `/question/:questionId` | Update question details |
 | 15 | DELETE | `/question/:questionId` | Delete (soft delete) question |
+| 16 | POST | `/collections` | Create new collection |
+| 17 | GET | `/collections` | Get user's collections |
+| 18 | GET | `/collections/:collectionId` | Get specific collection |
+| 19 | PATCH | `/collections/:collectionId` | Update collection details |
+| 20 | DELETE | `/collections/:collectionId` | Delete collection |
+| 21 | GET | `/collections/:collectionId/questions` | Get collection's questions |
+| 22 | POST | `/collectionQuestions/:collectionId/questions` | Add question to collection |
+| 23 | DELETE | `/collectionQuestions/:collectionId/questions/:questionId` | Remove question from collection |
+| 24 | PATCH | `/collectionQuestions/:collectionId/questions/:questionId/order` | Reorder question in collection |
+| 25 | POST | `/collectionQuestions/:collectionId/questions/bulk` | Bulk add questions |
+| 26 | DELETE | `/collectionQuestions/:collectionId/questions/bulk` | Bulk remove questions |
+| 27 | DELETE | `/collectionQuestions/:collectionId/questions` | Remove all questions |
 
 ---
 
@@ -199,6 +211,97 @@ curl -X DELETE http://localhost:5000/api/v1/question/507f1f77bcf86cd799439011 \
 ```
 
 ---
+
+### POST /collections (Requires Auth)
+```bash
+curl -X POST http://localhost:5000/api/v1/collections \
+  -H "Cookie: accessToken=<token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "DSA Problems",
+    "description": "Essential data structures and algorithms",
+    "isPublic": false
+  }'
+```
+
+---
+
+### GET /collections (Requires Auth)
+```bash
+curl -X GET http://localhost:5000/api/v1/collections \
+  -H "Cookie: accessToken=<token>"
+```
+
+---
+
+### GET /collections/:collectionId (Requires Auth)
+```bash
+curl -X GET http://localhost:5000/api/v1/collections/507f1f77bcf86cd799439012 \
+  -H "Cookie: accessToken=<token>"
+```
+
+---
+
+### PATCH /collections/:collectionId (Requires Auth)
+```bash
+curl -X PATCH http://localhost:5000/api/v1/collections/507f1f77bcf86cd799439012 \
+  -H "Cookie: accessToken=<token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Advanced DSA",
+    "isPublic": true
+  }'
+```
+
+---
+
+### POST /collectionQuestions/:collectionId/questions (Requires Auth)
+```bash
+curl -X POST http://localhost:5000/api/v1/collectionQuestions/507f1f77bcf86cd799439012/questions \
+  -H "Cookie: accessToken=<token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "questionId": "507f1f77bcf86cd799439011"
+  }'
+```
+
+---
+
+### PATCH /collectionQuestions/:collectionId/questions/:questionId/order (Requires Auth)
+```bash
+curl -X PATCH http://localhost:5000/api/v1/collectionQuestions/507f1f77bcf86cd799439012/questions/507f1f77bcf86cd799439011/order \
+  -H "Cookie: accessToken=<token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "order": 1
+  }'
+```
+
+---
+
+### POST /collectionQuestions/:collectionId/questions/bulk (Requires Auth)
+```bash
+curl -X POST http://localhost:5000/api/v1/collectionQuestions/507f1f77bcf86cd799439012/questions/bulk \
+  -H "Cookie: accessToken=<token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "questionIds": ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439013"]
+  }'
+```
+
+---
+
+### DELETE /collectionQuestions/:collectionId/questions/bulk (Requires Auth)
+```bash
+curl -X DELETE http://localhost:5000/api/v1/collectionQuestions/507f1f77bcf86cd799439012/questions/bulk \
+  -H "Cookie: accessToken=<token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "questionIds": ["507f1f77bcf86cd799439011"]
+  }'
+```
+
+---
   -H "Cookie: accessToken=<token>" \
   -F "avatar=@./image.jpg"
 ```
@@ -309,6 +412,31 @@ curl -X GET http://localhost:5000/api/v1/users/c/john_doe
 - Optional field
 - Auto-deduplicated and lowercased
 
+### Collection Name
+- Min length: 2 characters
+- Max length: 100 characters
+- Must be unique per user (case-insensitive)
+- Trimmed of whitespace
+- Required field
+
+### Collection Description
+- Max length: 300 characters
+- Optional field
+
+### Collection isPublic
+- Boolean value (true or false)
+- Optional field (defaults to false)
+
+### Collection Order
+- Non-negative integer
+- Used for custom ordering of questions in a collection
+- Defaults to 0 when question is added
+
+### Question IDs (for Bulk Operations)
+- Array of valid MongoDB ObjectIds
+- Non-empty array required
+- All IDs should be valid question IDs
+
 ---
 
 ## 🛠️ Development Commands
@@ -405,6 +533,8 @@ See `ANALYSIS_AND_RECOMMENDATIONS.md` for details and implementation suggestions
 ✅ **Implemented & Tested** - Image uploads  
 ✅ **Implemented & Tested** - Question management (CRUD)  
 ✅ **Implemented & Tested** - Question filtering & search  
+✅ **Implemented & Tested** - Collection management (CRUD)  
+✅ **Implemented & Tested** - Collection questions (add/remove/reorder)  
 ❌ **Not Implemented** - Email verification  
 ❌ **Not Implemented** - Password reset  
 ❌ **Not Implemented** - Follow system endpoints  
@@ -414,11 +544,13 @@ See `ANALYSIS_AND_RECOMMENDATIONS.md` for details and implementation suggestions
 
 ## 📊 API Statistics
 
-- **Total Endpoints:** 15
+- **Total Endpoints:** 27
 - **User Endpoints:** 10
 - **Question Endpoints:** 5
+- **Collection Endpoints:** 6
+- **Collection Questions Endpoints:** 6
 - **Public Endpoints:** 4
-- **Protected Endpoints:** 11
+- **Protected Endpoints:** 23
 - **File Upload Endpoints:** 2
 - **Search/Filter Endpoints:** 1
 - **Response Format:** Consistent JSON
@@ -443,20 +575,10 @@ See `ANALYSIS_AND_RECOMMENDATIONS.md` for details and implementation suggestions
 3. ✅ Implement login/register forms
 4. ✅ Add authentication interceptors
 5. ✅ Implement question CRUD operations
-6. ✅ Add filtering & search functionality5. ✅ Handle token refresh
-6. ✅ Build user profile pages
-
----
-
-## 📊 API Statistics
-
-- **Total Endpoints:** 10
-- **Public Endpoints:** 4
-- **Protected Endpoints:** 6
-- **File Upload Endpoints:** 2
-- **Response Format:** Consistent JSON
-- **Authentication:** JWT with refresh rotation
-- **Error Handling:** Centralized & descriptive
+6. ✅ Add filtering & search functionality
+7. ✅ Implement collection management
+8. ✅ Handle token refresh
+9. ✅ Build user profile pages
 
 ---
 

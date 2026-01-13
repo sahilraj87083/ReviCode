@@ -10,10 +10,14 @@
 
 1. [Authentication & User Management](#authentication--user-management)
 2. [Question Management](#question-management)
-3. [Error Responses](#error-responses)
-4. [Response Format](#response-format)
-5. [User Model Schema](#user-model-schema)
-6. [Question Model Schema](#question-model-schema)
+3. [Collection Management](#collection-management)
+4. [Collection Questions Management](#collection-questions-management)
+5. [Error Responses](#error-responses)
+6. [Response Format](#response-format)
+7. [User Model Schema](#user-model-schema)
+8. [Question Model Schema](#question-model-schema)
+9. [Collection Model Schema](#collection-model-schema)
+10. [CollectionQuestion Model Schema](#collectionquestion-model-schema)
 
 ---
 
@@ -1147,6 +1151,677 @@ questionId: string (MongoDB ObjectId, required)
 
 ---
 
+## Collection Management
+
+### 16. Create Collection
+
+**Endpoint:** `POST /api/v1/collections`
+
+**Authentication:** Required ✅
+
+**Description:** Create a new question collection for organizing problems
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "name": "string (required, 2-100 chars)",
+  "description": "string (optional, max 300 chars)",
+  "isPublic": "boolean (optional, default: false)"
+}
+```
+
+**Validation Rules:**
+- name: Required, 2-100 characters, trimmed
+- description: Optional, max 300 characters
+- isPublic: Optional, must be boolean if provided
+
+**Response (201 Created):**
+```json
+{
+  "errorCode": 201,
+  "message": "Collection created",
+  "data": {
+    "_id": "ObjectId",
+    "ownerId": "ObjectId",
+    "name": "string",
+    "nameLower": "string (lowercase for searching)",
+    "description": "string",
+    "isPublic": "boolean",
+    "questionsCount": 0,
+    "createdAt": "ISO 8601 timestamp",
+    "updatedAt": "ISO 8601 timestamp"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Collection name is required | Missing name |
+| 400 | Validation error | Invalid input format |
+| 409 | You have already have this collection | Duplicate collection name |
+| 401 | Unauthorized | Missing/invalid access token |
+
+---
+
+### 17. Get My Collections
+
+**Endpoint:** `GET /api/v1/collections`
+
+**Authentication:** Required ✅
+
+**Description:** Retrieve all collections owned by the authenticated user
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Collections fetched",
+  "data": [
+    {
+      "_id": "ObjectId",
+      "ownerId": "ObjectId",
+      "name": "string",
+      "nameLower": "string",
+      "description": "string",
+      "isPublic": "boolean",
+      "questionsCount": "number",
+      "createdAt": "ISO 8601 timestamp",
+      "updatedAt": "ISO 8601 timestamp"
+    }
+    // ... more collections
+  ],
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Returns empty array if no collections exist
+- Sorted by creation date (newest first)
+- Includes question count for each collection
+
+---
+
+### 18. Get Collection by ID
+
+**Endpoint:** `GET /api/v1/collections/:collectionId`
+
+**Authentication:** Required ✅
+
+**Description:** Retrieve a specific collection's details
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Collection fetched",
+  "data": {
+    "_id": "ObjectId",
+    "ownerId": "ObjectId",
+    "name": "string",
+    "nameLower": "string",
+    "description": "string",
+    "isPublic": "boolean",
+    "questionsCount": "number",
+    "createdAt": "ISO 8601 timestamp",
+    "updatedAt": "ISO 8601 timestamp"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- User can only retrieve their own collections
+- Returns full collection metadata
+
+---
+
+### 19. Update Collection
+
+**Endpoint:** `PATCH /api/v1/collections/:collectionId`
+
+**Authentication:** Required ✅
+
+**Description:** Update collection details (name, description, visibility)
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+Content-Type: application/json
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Request Body:**
+```json
+{
+  "name": "string (optional, 2-100 chars)",
+  "description": "string (optional, max 300 chars)",
+  "isPublic": "boolean (optional)"
+}
+```
+
+**Validation Rules:**
+- At least one field must be provided
+- name: 2-100 characters if provided, trimmed
+- description: Max 300 characters if provided, trimmed
+- isPublic: Must be boolean if provided
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Collection updated",
+  "data": {
+    "_id": "ObjectId",
+    "ownerId": "ObjectId",
+    "name": "string",
+    "nameLower": "string",
+    "description": "string",
+    "isPublic": "boolean",
+    "questionsCount": "number",
+    "createdAt": "ISO 8601 timestamp",
+    "updatedAt": "ISO 8601 timestamp"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 400 | At least one field is required | No fields provided |
+| 400 | Collection name cannot be empty | Empty name provided |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- User can only update their own collections
+- Updating name updates nameLower field automatically
+- questionsCount cannot be directly updated (changes via add/remove operations)
+
+---
+
+### 20. Delete Collection
+
+**Endpoint:** `DELETE /api/v1/collections/:collectionId`
+
+**Authentication:** Required ✅
+
+**Description:** Delete a collection and all its question associations
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Collection deleted",
+  "data": {},
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Performs hard delete (removes collection and all associations)
+- Also removes all CollectionQuestion records for this collection
+- Questions themselves are NOT deleted, only the collection
+
+---
+
+### 21. Get Collection Questions
+
+**Endpoint:** `GET /api/v1/collections/:collectionId/questions`
+
+**Authentication:** Required ✅
+
+**Description:** Retrieve all questions in a collection with order and metadata
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Collection questions fetched",
+  "data": {
+    "collection": {
+      "_id": "ObjectId",
+      "name": "string",
+      "questionsCount": "number"
+    },
+    "questions": [
+      {
+        "order": "number",
+        "addedAt": "ISO 8601 timestamp",
+        "question": {
+          "_id": "ObjectId",
+          "title": "string",
+          "platform": "string",
+          "difficulty": "string",
+          "topics": ["string"],
+          "problemUrlOriginal": "string",
+          // ... other question fields
+        }
+      }
+      // ... more questions
+    ]
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Questions are sorted by order, then by addedAt (descending)
+- Automatically filters out deleted questions
+- Includes ordering information for each question
+- Includes full question metadata
+
+---
+
+## Collection Questions Management
+
+### 22. Add Question to Collection
+
+**Endpoint:** `POST /api/v1/collectionQuestions/:collectionId/questions`
+
+**Authentication:** Required ✅
+
+**Description:** Add a single question to a collection
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+Content-Type: application/json
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Request Body:**
+```json
+{
+  "questionId": "string (ObjectId, required)"
+}
+```
+
+**Validation Rules:**
+- collectionId: Must be valid MongoDB ObjectId
+- questionId: Must be valid MongoDB ObjectId
+
+**Response (201 Created):**
+```json
+{
+  "errorCode": 201,
+  "message": "Question added to collection",
+  "data": null,
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 400 | Invalid question ID | Invalid ObjectId format |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 404 | Question not found | Question doesn't exist or is deleted |
+| 409 | Question already in this collection | Question already exists in collection |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- User must own both collection and question
+- questionsCount is incremented automatically
+- Prevents duplicate entries (unique constraint)
+- Default order: 0, can be changed with reorder endpoint
+
+---
+
+### 23. Remove Question from Collection
+
+**Endpoint:** `DELETE /api/v1/collectionQuestions/:collectionId/questions/:questionId`
+
+**Authentication:** Required ✅
+
+**Description:** Remove a single question from a collection
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+questionId: string (MongoDB ObjectId, required)
+```
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Question removed from collection",
+  "data": null,
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 400 | Invalid question ID | Invalid ObjectId format |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 404 | Question not found in this collection | Question not in collection |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- questionsCount is decremented automatically
+- Only removes the association, question remains in database
+
+---
+
+### 24. Reorder Question in Collection
+
+**Endpoint:** `PATCH /api/v1/collectionQuestions/:collectionId/questions/:questionId/order`
+
+**Authentication:** Required ✅
+
+**Description:** Change the order/position of a question within the collection
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+Content-Type: application/json
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+questionId: string (MongoDB ObjectId, required)
+```
+
+**Request Body:**
+```json
+{
+  "order": "number (non-negative integer, required)"
+}
+```
+
+**Validation Rules:**
+- order: Must be non-negative integer (0, 1, 2, etc.)
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Order updated",
+  "data": {
+    "_id": "ObjectId",
+    "collectionId": "ObjectId",
+    "questionId": "ObjectId",
+    "order": "number",
+    "addedAt": "ISO 8601 timestamp"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 400 | Invalid question ID | Invalid ObjectId format |
+| 400 | Order must be a non-negative integer | Invalid order value |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 404 | Question not found in collection | Question not in collection |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Order is used for sorting (ascending by order, then by addedAt)
+- Multiple questions can have same order (they'll be sorted by addedAt)
+- Allows flexible ordering without gaps
+
+---
+
+### 25. Bulk Add Questions to Collection
+
+**Endpoint:** `POST /api/v1/collectionQuestions/:collectionId/questions/bulk`
+
+**Authentication:** Required ✅
+
+**Description:** Add multiple questions to collection in one request
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+Content-Type: application/json
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Request Body:**
+```json
+{
+  "questionIds": ["ObjectId1", "ObjectId2", "ObjectId3", ...]
+}
+```
+
+**Validation Rules:**
+- questionIds: Required, non-empty array
+- Each item must be valid MongoDB ObjectId
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Bulk add completed",
+  "data": {
+    "added": "number (count of successfully added)",
+    "attempted": "number (count of requested)"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 400 | questionIds must be a non-empty array | Missing or empty array |
+| 400 | Each questionId must be a valid Mongo ID | Invalid ObjectId in array |
+| 400 | No valid question IDs provided | All IDs invalid |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Uses `ordered: false` to skip duplicates and continue processing
+- Returns count of added and attempted
+- Increments questionsCount with successfully added count
+- Silently skips already-existing questions (409 errors not thrown)
+- User must own all questions
+
+---
+
+### 26. Bulk Remove Questions from Collection
+
+**Endpoint:** `DELETE /api/v1/collectionQuestions/:collectionId/questions/bulk`
+
+**Authentication:** Required ✅
+
+**Description:** Remove multiple questions from collection in one request
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+Content-Type: application/json
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Request Body:**
+```json
+{
+  "questionIds": ["ObjectId1", "ObjectId2", "ObjectId3", ...]
+}
+```
+
+**Validation Rules:**
+- questionIds: Required, non-empty array
+- Each item must be valid MongoDB ObjectId
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "Questions removed from collection",
+  "data": {
+    "removed": "number (count of successfully removed)",
+    "attempted": "number (count of valid IDs)"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 400 | questionIds must be a non-empty array | Missing or empty array |
+| 400 | Each questionId must be a valid Mongo ID | Invalid ObjectId in array |
+| 400 | No valid question IDs provided | All IDs invalid |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Filters invalid ObjectIds before processing
+- Returns count of removed and attempted (valid) IDs
+- Decrements questionsCount with successfully removed count
+- Silently skips non-existent associations
+
+---
+
+### 27. Remove All Questions from Collection
+
+**Endpoint:** `DELETE /api/v1/collectionQuestions/:collectionId/questions`
+
+**Authentication:** Required ✅
+
+**Description:** Clear all questions from a collection
+
+**Request Headers:**
+```
+Cookie: accessToken=<token>
+```
+
+**URL Parameters:**
+```
+collectionId: string (MongoDB ObjectId, required)
+```
+
+**Response (200 OK):**
+```json
+{
+  "errorCode": 200,
+  "message": "All questions removed",
+  "data": {
+    "removed": "number (count of questions removed)"
+  },
+  "success": true
+}
+```
+
+**Error Responses:**
+| Status | Message | Reason |
+|--------|---------|--------|
+| 400 | Invalid collection ID | Invalid ObjectId format |
+| 404 | Collection not found | Collection doesn't exist or not owned by user |
+| 401 | Unauthorized | Missing/invalid access token |
+
+**Notes:**
+- Removes all CollectionQuestion records for this collection
+- Sets questionsCount to 0
+- Collection itself is NOT deleted
+- Questions are NOT deleted, only associations
+
+---
+
 ## Future Endpoints (TODO)
 
 The following endpoints are planned but not yet implemented:
@@ -1352,6 +2027,102 @@ curl -X DELETE http://localhost:5000/api/v1/question/507f1f77bcf86cd799439011 \
 
 3. **Text Index:** `{ title: "text", topics: "text", platform: "text" }`
    - Enables full-text search across fields
+
+---
+
+## Collection Model Schema
+
+```javascript
+{
+  ownerId: {
+    type: ObjectId,
+    ref: "User",
+    required: true,
+    indexed: true
+  },
+  
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100
+  },
+  
+  nameLower: {
+    type: String,
+    required: true,
+    indexed: true
+  },
+  
+  description: {
+    type: String,
+    maxlength: 300
+  },
+  
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
+  
+  questionsCount: {
+    type: Number,
+    default: 0
+  },
+  
+  timestamps: {
+    createdAt: ISO 8601,
+    updatedAt: ISO 8601
+  }
+}
+```
+
+### Indexes:
+1. **Compound Index:** `{ ownerId: 1, name: 1 }`
+   - Optimizes collection lookup by owner and name
+
+2. **Compound Index (unique):** `{ ownerId: 1, nameLower: 1 }`
+   - Ensures unique collection names per user (case-insensitive)
+
+---
+
+## CollectionQuestion Model Schema
+
+```javascript
+{
+  collectionId: {
+    type: ObjectId,
+    ref: "Collection",
+    required: true,
+    indexed: true
+  },
+  
+  questionId: {
+    type: ObjectId,
+    ref: "Question",
+    required: true,
+    indexed: true
+  },
+  
+  order: {
+    type: Number,
+    default: 0
+  },
+  
+  addedAt: {
+    type: Date,
+    default: Date.now
+  },
+  
+  timestamps: {
+    updatedAt: ISO 8601 (if needed, though timestamps: false used)
+  }
+}
+```
+
+### Indexes:
+1. **Compound Index (unique):** `{ collectionId: 1, questionId: 1 }`
+   - Prevents duplicate question entries in same collection
+   - Enables efficient lookups of specific questions in collection
 
 ---
 

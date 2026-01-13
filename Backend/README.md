@@ -229,6 +229,26 @@ A comprehensive API documentation file is available at:
 | PATCH | `/api/v1/question/:questionId` | ✅ | Update question details |
 | DELETE | `/api/v1/question/:questionId` | ✅ | Soft delete question |
 
+#### Collection Endpoints (6 endpoints)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/collections` | ✅ | Create new collection |
+| GET | `/api/v1/collections` | ✅ | Get user's collections |
+| GET | `/api/v1/collections/:collectionId` | ✅ | Get specific collection |
+| PATCH | `/api/v1/collections/:collectionId` | ✅ | Update collection details |
+| DELETE | `/api/v1/collections/:collectionId` | ✅ | Delete collection |
+| GET | `/api/v1/collections/:collectionId/questions` | ✅ | Get collection's questions |
+
+#### Collection Questions Endpoints (6 endpoints)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/collectionQuestions/:collectionId/questions` | ✅ | Add question to collection |
+| DELETE | `/api/v1/collectionQuestions/:collectionId/questions/:questionId` | ✅ | Remove question from collection |
+| PATCH | `/api/v1/collectionQuestions/:collectionId/questions/:questionId/order` | ✅ | Reorder question in collection |
+| POST | `/api/v1/collectionQuestions/:collectionId/questions/bulk` | ✅ | Bulk add questions |
+| DELETE | `/api/v1/collectionQuestions/:collectionId/questions/bulk` | ✅ | Bulk remove questions |
+| DELETE | `/api/v1/collectionQuestions/:collectionId/questions` | ✅ | Remove all questions |
+
 ---
 
 ## Database Models

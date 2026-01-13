@@ -32,17 +32,17 @@ Complete project documentation including:
 **For:** Frontend developers, API consumers, Postman users
 
 Complete API reference with:
-- All 10 endpoints fully documented
+- All 27 endpoints fully documented
 - Request/response JSON structures
 - Validation rules for every input
 - Error responses mapping
 - Authentication details
-- User model schema
+- User, Question, Collection models schema
 - JWT token structure
 - cURL command examples
 - Example flows
 
-**Time to read:** 15-20 minutes (reference document)
+**Time to read:** 25-30 minutes (reference document)
 
 ---
 
@@ -137,13 +137,17 @@ Cheat sheet with:
 ## 📊 Documentation Statistics
 
 - **Total Files:** 5 (including this index)
-- **Total Words:** 15,000+
-- **Endpoints Documented:** 10/10 (100%)
+- **Total Words:** 22,000+
+- **Endpoints Documented:** 27/27 (100%)
+  - User Endpoints: 10
+  - Question Endpoints: 5
+  - Collection Endpoints: 6
+  - Collection Questions Endpoints: 6
 - **Code Issues Identified:** 8
 - **Missing Features:** 8
 - **Security Recommendations:** 11
-- **Example Commands:** 10+
-- **JSON Examples:** 50+
+- **Example Commands:** 25+
+- **JSON Examples:** 80+
 
 ---
 
