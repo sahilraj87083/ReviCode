@@ -50,4 +50,26 @@ const contestSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+
+contestSchema.index({ endsAt: 1 });
+
+contestSchema.pre("save" , function (next) {
+    if (!this.startsAt) {
+        this.startsAt = new Date();
+    }
+
+    // Contest expires after 7 days
+    this.endsAt = new Date(this.startsAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    // next()
+})
+
+contestSchema.statics.expireContests = async function () {
+    
+    await this.updateMany(
+        { status: "live", endsAt: { $lte: new Date() } },
+        { $set: { status: "ended" } }
+    );
+};
+
 export const Contest = mongoose.model("Contest", contestSchema);
