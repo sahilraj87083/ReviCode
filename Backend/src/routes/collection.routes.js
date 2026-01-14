@@ -20,9 +20,9 @@ router.route("/")
     verifyJWT,
     [
         body("name")
-        .trim()
-        .isLength({ min: 2, max: 100 })
-        .withMessage("Collection name must be between 2 and 100 characters"),
+          .trim()
+          .isLength({ min: 2, max: 100 })
+          .withMessage("Collection name must be between 2 and 100 characters"),
 
         body("description")
             .optional()
@@ -61,56 +61,56 @@ router.route("/:collectionId")
 // update collection
 router.route("/:collectionId")
 .patch(
-  verifyJWT,
-  [
-    param("collectionId")
-      .isMongoId()
-      .withMessage("Invalid collection ID"),
+    verifyJWT,
+    [
+      param("collectionId")
+          .isMongoId()
+          .withMessage("Invalid collection ID"),
 
-    body("name")
-      .optional()
-      .trim()
-      .isLength({ min: 2, max: 100 })
-      .withMessage("Collection name must be between 2 and 100 characters"),
+      body("name")
+          .optional()
+          .trim()
+          .isLength({ min: 2, max: 100 })
+          .withMessage("Collection name must be between 2 and 100 characters"),
 
-    body("description")
-      .optional()
-      .isLength({ max: 300 })
-      .withMessage("Description must be under 300 characters"),
+      body("description")
+          .optional()
+          .isLength({ max: 300 })
+          .withMessage("Description must be under 300 characters"),
 
-    body("isPublic")
-      .optional()
-      .isBoolean()
-      .withMessage("isPublic must be a boolean"),
-  ],
-  validate,
-  updateCollection
+      body("isPublic")
+          .optional()
+          .isBoolean()
+          .withMessage("isPublic must be a boolean"),
+    ],
+    validate,
+    updateCollection
 );
 
 // delete collection
 router.route("/:collectionId")
 .delete(
-  verifyJWT,
-  [
-    param("collectionId")
-      .isMongoId()
-      .withMessage("Invalid collection ID"),
-  ],
-  validate,
-  deleteCollections
+    verifyJWT,
+    [
+      param("collectionId")
+          .isMongoId()
+          .withMessage("Invalid collection ID"),
+    ],
+    validate,
+    deleteCollections
 );
 
 // get all the questions of the collection
 router.route("/:collectionId/questions")
 .get(
-  verifyJWT,
-  [
-    param("collectionId")
-      .isMongoId()
-      .withMessage("Invalid collection ID"),
-  ],
-  validate,
-  getCollectionQuestions
+    verifyJWT,
+    [
+        param("collectionId")
+            .isMongoId()
+            .withMessage("Invalid collection ID"),
+    ],
+    validate,
+    getCollectionQuestions
 );
 
 

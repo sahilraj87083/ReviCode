@@ -30,12 +30,13 @@ app.get('/', (req, res) => {
 // import routes
 import userRouter from './routes/user.routes.js'
 import questionRouter from './routes/question.routes.js'
-
+import collectionRouter from './routes/collection.routes.js'
 
 
 //  use routes
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/question', questionRouter)
+app.use('/api/v1/collection', collectionRouter)
 
 
 

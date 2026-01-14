@@ -34,5 +34,5 @@ const validateUser =  async (collectionId, userId) => {
 
 export {
     createCollectionService,
-    validateUserOwnershipCollection
+    validateUser
 }
