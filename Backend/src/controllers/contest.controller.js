@@ -113,6 +113,101 @@ const joinContest = asyncHandler(async (req, res) => {
 
 
 const submitContest = asyncHandler(async (req, res) => {
+    const {contestId} = req.params
+
+    if(!isValidObjectId(contestId)){
+        throw new ApiError(400, "Invalid contest ID");
+    }
+
+    const contest = await Contest.findById(contestId);
+
+    if(!contest){
+        throw new ApiError(404, "Contest not found");
+    }
+
+    const participant = await ContestParticipant.findOne(
+        {
+            contestId : contestId,
+            userId : req.user._id
+        }
+    )
+
+    if (!participant) throw new ApiError(403, "You are not part of this contest");
+
+    if (participant.submissionStatus === "submitted") {
+        throw new ApiError(400, "Contest already submitted");
+    }
+
+    const now = new Date();
+
+    const allowedUntil = new Date(
+        participant.startedAt.getTime() + contest.durationInMin * 60 * 1000
+    );
+
+    if (now > allowedUntil) {
+        throw new ApiError(403, "Contest time has expired");
+    }
+
+    // Frontend sends:
+    // {
+    // "attempts" : 
+    //     [
+    //         { "questionId": "...", "status": "solved", "timeSpent": 120 },
+    //         { "questionId": "...", "status": "unsolved", "timeSpent": 300 }
+    //     ]
+    // }
+
+    const { attempts } = req.body;
+
+
+    let solved = 0;
+    let totalTime = 0;
+
+    for(const a of attempts){
+        const safeTime = Math.max(0, Number(a.timeSpent) || 0);
+
+        const updated = await QuestionAttempt.updateOne(
+            {
+                contestId : contest._id,
+                userId : req.user._id,
+                questionId : a.questionId
+            },
+            { 
+                $set: { 
+                    status: a.status, 
+                    timeSpent: safeTime
+                } 
+            }
+        )
+
+        if (!updated.matchedCount) {
+            throw new ApiError(400, "Invalid question attempt");
+        }
+
+        if(a.status === 'solved') solved++;
+        totalTime += a.timeSpent
+    }
+
+    const totalQuestions = contest.questionIds.length;
+    const unsolved = totalQuestions - solved;
+    const score = solved * 100 - totalTime * 0.1;
+
+
+    await ContestParticipant.updateOne(
+        {
+            _id : participant._id
+        },
+        {
+            solvedCount : solved,
+            unsolvedCount : unsolved,
+            timeTaken : totalTime,
+            submissionStatus : "submitted",
+            finishedAt : now,
+            score : score
+        }
+    )
+
+    return res.status(200).json(new ApiResponse(200, "Contest submitted successfully"));
 
 })
 
