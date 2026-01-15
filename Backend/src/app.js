@@ -35,6 +35,7 @@ import userRouter from './routes/user.routes.js'
 import questionRouter from './routes/question.routes.js'
 import collectionRouter from './routes/collection.routes.js'
 import collectioQuestionRouter from './routes/collectionQuestion.routes.js'
+import ContestRoutes from './routes/contest.routes.js'
 
 
 //  use routes
@@ -42,6 +43,7 @@ app.use('/api/v1/users', userRouter)
 app.use('/api/v1/questions', questionRouter)
 app.use('/api/v1/collections', collectionRouter)
 app.use('/api/v1/collections', collectioQuestionRouter)
+app.use('/api/v1/contest', ContestRoutes)
 
 
 
