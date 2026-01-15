@@ -46,6 +46,62 @@ const getUserTopicStats = asyncHandler(async (req , res) => {
 })
 
 const getUserContestHistory = asyncHandler(async (req , res) => {
+    const { userId } = req.params
+
+    const {page = 1, limit = 20} = req.query
+
+    if(!isValidObjectId(userId)){
+        throw new ApiError(400, "Invalid user ID");
+    }
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Math.min(Number(limit) || 20, 50);
+    const skip = (pageNum - 1) * limitNum;
+
+    const matchStage = {
+        userId: new mongoose.Types.ObjectId(userId)
+    };
+
+    const [history, total] = await Promise.all([
+        ContestParticipant.aggregate([
+            { $match: matchStage },
+            {
+                $lookup: {
+                    from: "contests",
+                    localField: "contestId",
+                    foreignField: "_id",
+                    as: "contest"
+                }
+            },
+            { $unwind: "$contest" },
+            { $sort: { finishedAt: -1 } },
+            { $skip: skip },
+            { $limit: limitNum },
+            {
+                $project: {
+                    contestId: 1,
+                    "contest.title": 1,
+                    solvedCount: 1,
+                    unsolvedCount: 1,
+                    score: 1,
+                    timeTaken: 1,
+                    finishedAt: 1
+                }
+            }
+        ]),
+        ContestParticipant.countDocuments(matchStage)
+    ]);
+
+
+    return res.status(200).json(
+        new ApiResponse(200, "Contest history fetched", {
+            total,
+            page: pageNum,
+            pages: Math.ceil(total / limitNum),
+            limit: limitNum,
+            history
+        })
+    );
 
 })
 
