@@ -6,7 +6,25 @@ import {asyncHandler} from "../utils/AsyncHandler.utils.js";
 import { followUserService } from "../services/follow.services.js";
 
 const followUser = asyncHandler(async (req, res) => {
+    const {targetUserId} = req.params
+    const currUser = req.user._id;
 
+    if(!isValidObjectId(targetUserId)){
+        throw new ApiError(400, "Invalid user ID");
+    }
+
+    if (targetUserId.toString() === currUser.toString()) {
+        throw new ApiError(400, "You cannot follow yourself");
+    }
+
+    await followUserService({
+        followerId : currUser,
+        followingId : targetUserId
+    })
+
+    return res
+        .status(201)
+        .json(new ApiResponse(201, "User followed"));
 })
 
 const unfollowUser = asyncHandler(async (req, res) => {
