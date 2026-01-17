@@ -11,6 +11,11 @@ import LiveContests from './ExploreComponents/LiveContests'
 import PublicCollections from './ExploreComponents/PublicCollections'
 import TopCreators from './ExploreComponents/TopCreator'
 
+
+import StatCard from './DashBoardComponents/StatCard'
+import ActionCard from './DashBoardComponents/ActionCard'
+import RecentRow from './DashBoardComponents/RecentRow'
+
 export {
     Header,
     Footer,
@@ -20,8 +25,13 @@ export {
     QuestionRow,
     AddQuestionPanel,
     CreateContestModal,
+
     LiveContests,
     PublicCollections,
     TopCreators,
+
+    StatCard,
+    ActionCard,
+    RecentRow
     
 }
