@@ -1,5 +1,12 @@
 import { ExternalLink } from "lucide-react";
+import {Button} from '../'
+
+
 function QuestionRow({ q, index }) {
+
+  const HandleDelete = (e) => {
+    console.log("Question Deleted")
+  }
   return (
     <div
       className="flex items-center justify-between
@@ -44,18 +51,31 @@ function QuestionRow({ q, index }) {
       </div>
 
       {/* RIGHT */}
-      <a
-        href={q.problemUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-2
-        px-4 py-2 rounded-md
-        bg-red-600 hover:bg-red-500
-        text-sm font-semibold transition"
-      >
-        Solve
-        <ExternalLink size={16} />
-      </a>
+      <div className="flex gap-5">
+        
+        <a
+          href={q.problemUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2
+          px-4 py-2 rounded-md
+          bg-green-600 hover:bg-green-500
+          text-sm font-semibold transition"
+        >
+          Solve
+          <ExternalLink size={16} />
+        </a>
+
+        <Button 
+        onClick = {(e) => {
+          HandleDelete(e)
+        }}
+        variant = "primary" size = 'sm'>
+          <i className="ri-delete-bin-2-line"></i>
+          <p>Delete</p>
+        </Button>
+
+      </div>
     </div>
   );
 }

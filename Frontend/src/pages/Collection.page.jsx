@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import {CreateContestModal, CreateCollectionModal, EmptyState, CollectionCard} from '../components'
 
 function Collections() {
+  
     const containerRef = useRef(null);
     const [showCreate, setShowCreate] = useState(false);
   
@@ -83,7 +84,7 @@ function Collections() {
         ) : (
           <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {collections.map((c) => (
-              <CollectionCard key={c.id} collection={c} />
+              <CollectionCard key={c.id} collection={c} onCreateContest = {handleCreateContestClick}/>
             ))}
           </section>
         )}
@@ -94,12 +95,14 @@ function Collections() {
       {showCreate && (
         <CreateCollectionModal onClose={() => setShowCreate(false)} />
       )}
+
       <CreateContestModal
-  open={openContestModal}
-  collection={selectedCollection}
-  onClose={() => setOpenContestModal(false)}
-  onSubmit={handleCreateContest}
-/>
+        open={openContestModal}
+        collection={selectedCollection}
+        onClose={() => setOpenContestModal(false)}
+        onSubmit={handleCreateContest}
+      />
+
 
 
 

@@ -3,7 +3,7 @@ import Footer  from './Footer/Footer'
 import Input from './Others/Input'
 import Button from './Others/Button'
 import Select from './Others/Select'
-import QuestionRow from './Others/QuestionRow'
+import QuestionRow from './CollectionPageComponents/QuestionRow'
 import AddQuestionPanel from './Others/AddQuestionPanel'
 
 import LiveContests from './ExploreComponents/LiveContests'
@@ -45,5 +45,5 @@ export {
     CreateCollectionModal,
     CreateContestModal,
 
-    
+
 }
