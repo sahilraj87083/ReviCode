@@ -31,7 +31,7 @@ function ProfileDropdown({ user }) {
       {open && (
         <div className="absolute right-0 mt-3 w-40 bg-zinc-900 border border-gray-800 rounded-md shadow-lg">
           <NavLink
-            to={`/profile/${user.username}`}
+            to={`user/profile/${user.username}`}
             className="block px-4 py-2 text-gray-300 hover:bg-zinc-800 font-semibold"
             onClick={() => setOpen(false)}
           >

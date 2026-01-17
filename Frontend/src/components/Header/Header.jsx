@@ -13,40 +13,42 @@ function Header() {
 
   const isAuthenticated = true;
 
-  useGSAP(
-    () => {
-      const tl = gsap.timeline();
+ useGSAP(
+  () => {
+    const tl = gsap.timeline();
 
-      tl.from(headerRef.current, {
-        y: -60,
-        opacity: 0,
-        duration: 0.8,
-        ease: "power3.out",
-      })
-        .from(
-          logoRef.current,
-          {
-            scale: 0.85,
-            opacity: 0,
-            duration: 0.5,
-            ease: "back.out(1.7)",
-          },
-          "-=0.4"
-        )
-        .from(
-          navRef.current.children,
-          {
-            y: -10,
-            opacity: 0,
-            stagger: 0.1,
-            duration: 0.35,
-            ease: "power2.out",
-          },
-          "-=0.3"
-        );
-    },
-    { scope: headerRef }
-  );
+    tl.from(headerRef.current, {
+      y: -60,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    })
+      .from(
+        logoRef.current,
+        {
+          scale: 0.85,
+          opacity: 0,
+          duration: 0.5,
+          ease: "back.out(1.7)",
+        },
+        "-=0.4"
+      )
+      .from(
+        navRef.current.children,
+        {
+          y: -10,
+          opacity: 0,
+          stagger: 0.1,
+          duration: 0.4,
+          ease: "power2.out",
+        },
+        "-=0.3"
+      );
+  },
+  { scope: headerRef }
+);
+
+
 
   return (
     <header
@@ -59,7 +61,7 @@ function Header() {
 
         {/* LOGO */}
         <NavLink
-          to={isAuthenticated ? "/dashboard" : "/"}
+          to={isAuthenticated ? "" : "/"}
           className="flex items-center gap-3"
           ref={logoRef}
         >
@@ -77,26 +79,28 @@ function Header() {
         <nav ref={navRef} className="flex items-center gap-6 text-sm">
           {!isAuthenticated ? (
             <>
-              <NavLink className="nav-link" to="/explore">
+              <NavLink className="nav-item nav-link" to="/explore">
                 Explore
               </NavLink>
-              <NavLink className="nav-link" to="/login">
+              <NavLink className="nav-item nav-link" to="/user/login">
                 Login
               </NavLink>
               <NavLink
-                to="/register"
-                className="px-4 py-2 bg-red-600 hover:bg-red-500
-                text-white rounded-md font-semibold transition"
+                to="/user/register"
+                className="nav-item px-4 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-500"
               >
-                Sign Up
+                <p className="hover-underline">Sign Up</p>
               </NavLink>
             </>
           ) : (
             <>
-              <NavLink className="nav-link" to="/dashboard">Dashboard</NavLink>
-              <NavLink className="nav-link" to="/collections">Collections</NavLink>
-              <NavLink className="nav-link" to="/contests">Contests</NavLink>
-              <NavLink className="nav-link" to="/messages">Messages</NavLink>
+              <NavLink className="nav-item nav-link" to="/explore">
+                Explore
+              </NavLink>
+              <NavLink className="nav-link" to="user/dashboard">Dashboard</NavLink>
+              <NavLink className="nav-link" to="user/collections">Collections</NavLink>
+              <NavLink className="nav-link" to="user/contests">Contests</NavLink>
+              <NavLink className="nav-link" to="user/messages">Messages</NavLink>
               <ProfileDropdown user={{}} />
             </>
           )}
