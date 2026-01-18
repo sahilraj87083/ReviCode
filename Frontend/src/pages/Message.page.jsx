@@ -5,7 +5,7 @@ import { Input, ChatSidebar , ChatWindow} from "../components";
 
 function Messages() {
   const containerRef = useRef(null);
-  const [activeChat, setActiveChat] = useState(null);
+  const [activeChat, setActiveChat] = useState();
 
   useGSAP(() => {
     gsap.from(".chat-animate", {

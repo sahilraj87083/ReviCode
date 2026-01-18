@@ -1,12 +1,37 @@
-function MessagesArea() {
-  const messages = [
-    { fromMe: false, text: "Hey ready for contest?" },
-    { fromMe: true, text: "Yes! Let's go 🚀" },
-    { fromMe: false, text: "Join link sent" },
-  ];
+import { useEffect, useRef } from "react";
+
+function MessagesArea({ messages }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    // if (!containerRef.current) return;
+
+    // containerRef.current.scrollTo({
+    //   top: containerRef.current.scrollHeight,
+    //   behavior: "smooth",
+    // });
+    const container = containerRef.current;
+    if (!container) return;
+
+    const nearBottom =
+      container.scrollHeight -
+        container.scrollTop -
+        container.clientHeight <
+      200;
+
+    if (nearBottom) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+    <div
+      ref={containerRef}
+      className="flex-1 overflow-y-auto px-6 py-4 space-y-3"
+    >
       {messages.map((msg, i) => (
         <div
           key={i}
@@ -24,5 +49,7 @@ function MessagesArea() {
     </div>
   );
 }
+
+
 
 export default MessagesArea
