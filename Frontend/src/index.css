@@ -38,6 +38,18 @@
     .nav-link:hover::after {
         width: 100%;
     }
+
+    .is-active {
+        text-shadow: 0 0 12px rgba(239,68,68,0.5);
+        color: white;
+        font-weight: 600;
+    }
+
+    .is-active::after {
+        width: 100%;
+        
+    }
+
   
 }
 

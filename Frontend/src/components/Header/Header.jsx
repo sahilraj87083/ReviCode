@@ -61,7 +61,7 @@ function Header() {
 
         {/* LOGO */}
         <NavLink
-          to={isAuthenticated ? "" : "/"}
+          to={isAuthenticated ? "/" : "/"}
           className="flex items-center gap-3"
           ref={logoRef}
         >
@@ -77,12 +77,33 @@ function Header() {
 
         {/* NAV */}
         <nav ref={navRef} className="flex items-center gap-6 text-sm">
-          {!isAuthenticated ? (
-            <>
-              <NavLink className="nav-item nav-link" to="/explore">
+          <>
+
+            <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                }
+              >
+                Home
+              </NavLink>
+
+              <NavLink
+                to="/explore"
+                className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                }
+              >
                 Explore
               </NavLink>
-              <NavLink className="nav-item nav-link" to="/user/login">
+
+          </>
+
+          {!isAuthenticated ? (
+            <>
+              <NavLink className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                } to="/user/login">
                 Login
               </NavLink>
               <NavLink
@@ -94,13 +115,28 @@ function Header() {
             </>
           ) : (
             <>
-              <NavLink className="nav-item nav-link" to="/explore">
-                Explore
+
+              <NavLink className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                } to="user/collections">Collections
               </NavLink>
-              <NavLink className="nav-link" to="user/dashboard">Dashboard</NavLink>
-              <NavLink className="nav-link" to="user/collections">Collections</NavLink>
-              <NavLink className="nav-link" to="user/contests">Contests</NavLink>
-              <NavLink className="nav-link" to="user/messages">Messages</NavLink>
+
+              <NavLink className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                } to="user/contests">Contests
+                </NavLink>
+
+              <NavLink className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                }
+                to="user/messages">Messages
+              </NavLink>
+
+              <NavLink className={({ isActive }) =>
+                  `nav-item nav-link ${isActive ? "is-active" : ""}`
+                } to="user/dashboard">Dashboard
+              </NavLink>
+
               <ProfileDropdown user={{}} />
             </>
           )}
