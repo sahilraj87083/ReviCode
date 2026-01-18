@@ -15,11 +15,13 @@ const Input = forwardRef(
       autoComplete,
       required = false,
 
-      /* NEW */
+      /* Chat mode */
       isChat = false,
       onSend,
 
+      className = "",
       wrapperClassName = "",
+
       ...props
     },
     ref
@@ -61,12 +63,15 @@ const Input = forwardRef(
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             required={required}
+
             className={clsx(
               "w-full rounded-md px-4 py-2.5",
               "bg-slate-800 border border-slate-700 text-white",
               "focus:outline-none focus:ring-2 focus:ring-red-500",
-              isPassword || isChat ? "pr-12" : ""
+              isPassword || isChat ? "pr-12" : "",
+              className
             )}
+
             {...props}
           />
 

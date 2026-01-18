@@ -29,6 +29,9 @@ import DifficultyBadge from './PrivateContestLobbyComonents/DifficultyBadge'
 
 import PublicMetaCards from './PublicContestLobbyComponents/MetaCard'
 
+import ChatSidebar from './messageComponents/ChatSidebar'
+import ChatWindow from './messageComponents/ChatWindow'
+
 export {
     Header,
     Footer,
@@ -56,5 +59,8 @@ export {
     MetaCard,
     DifficultyBadge,
 
-    PublicMetaCards
+    PublicMetaCards,
+
+    ChatSidebar,
+    ChatWindow
 }
