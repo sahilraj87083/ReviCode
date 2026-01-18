@@ -4,10 +4,11 @@ import {
     MyProfile,
     Contests,
     LiveContest,
-    GroupContest,
+    GroupContestLobby,
     Collections,
     Message,
-    CollectionQuestions
+    CollectionQuestions,
+    PrivateContestLobby
 } from '../../pages'
 
 export const ProtectedRoutes = (
@@ -16,7 +17,9 @@ export const ProtectedRoutes = (
         <Route path="/user/profile" element = { <MyProfile/> }/>
         <Route path="/user/contests" element = { <Contests/> }/>
         <Route path="/user/contests/live" element = { <LiveContest/> }/>
-        <Route path="/user/contests/public" element = { <GroupContest/> }/>
+        <Route path="/user/contests/public" element = { <GroupContestLobby/> }/>
+        <Route path="/user/contests/private" element = { <PrivateContestLobby/> }/>
+
         <Route path="/user/collections" element = { <Collections/> }/>
         <Route path="/user/messages" element = { <Message/> }/>
         <Route path="/user/collection/questions" element = { <CollectionQuestions/> }/>

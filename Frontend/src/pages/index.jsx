@@ -5,11 +5,12 @@ import Login from './Login.page.jsx'
 import MyProfile from './profile.page.jsx'
 import Contests from './contest.page.jsx'
 import LiveContest from './LiveContest.page.jsx'
-import GroupContest from './GroupContest.page.jsx'
+import GroupContestLobby from './GroupContestLobby.page.jsx'
 import Collections from './Collection.page.jsx'
 import Explore from './Explore.page.jsx'
 import Message from './Message.page.jsx'
 import CollectionQuestions from './CollectionQuestions.page.jsx'
+import PrivateContestLobby from './PrivateContestLobby.page.jsx'
 
 
 export {
@@ -20,9 +21,10 @@ export {
     MyProfile,
     Contests,
     LiveContest,
-    GroupContest,
+    GroupContestLobby,
     Collections,
     Explore,
     Message,
-    CollectionQuestions
+    CollectionQuestions,
+    PrivateContestLobby
 }

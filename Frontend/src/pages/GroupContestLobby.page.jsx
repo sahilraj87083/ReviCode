@@ -1,13 +1,12 @@
 import { useState, useRef } from "react";
-import { Button } from "../components";
+import { Button, Input, PublicMetaCards } from "../components";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import {Input} from '../components'
 
-function GroupContest() {
+function GroupContestLobby() {
   const containerRef = useRef(null);
 
-  // ---- Mock state (will come from backend / socket)
+  // ---- Mock state (replace with backend/socket later)
   const isHost = true;
   const contestStatus = "waiting"; // waiting | live | ended
   const chatEnabled = contestStatus !== "live";
@@ -16,6 +15,14 @@ function GroupContest() {
     { id: 1, name: "Sahil", host: true },
     { id: 2, name: "Aman" },
     { id: 3, name: "Riya" },
+  ];
+
+  const questions = [
+    { id: 1, title: "Two Sum", difficulty: "easy" },
+    { id: 2, title: "Maximum Subarray", difficulty: "medium" },
+    { id: 3, title: "Binary Search", difficulty: "easy" },
+    { id: 4, title: "Merge Intervals", difficulty: "medium" },
+    { id: 5, title: "LRU Cache", difficulty: "hard" },
   ];
 
   useGSAP(() => {
@@ -32,7 +39,7 @@ function GroupContest() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 py-10">
       <div ref={containerRef} className="max-w-6xl mx-auto space-y-6">
 
-        {/* TOP BAR */}
+        {/* ---------------- TOP BAR ---------------- */}
         <section className="flex items-center justify-between bg-slate-900/60 border border-slate-700/50 rounded-xl p-4">
           <div>
             <h1 className="text-xl font-semibold text-white">
@@ -56,23 +63,30 @@ function GroupContest() {
           </span>
         </section>
 
-        {/* SYSTEM MESSAGE */}
-        <section className="bg-slate-800/60 border border-slate-700 rounded-lg p-4 text-sm text-slate-300">
+        {/* ---------------- CONTEST META ---------------- */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <PublicMetaCards label="Contest Code" value="AB12CD" copy />
+          <PublicMetaCards label="Questions" value={`${questions.length}`} />
+          <PublicMetaCards label="Duration" value="60 min" />
+        </section>
+
+
+        {/* ---------------- SYSTEM MESSAGE ---------------- */}
+        <section className="bg-slate-800/60 border text-center border-slate-700 rounded-lg p-4 text-sm text-slate-300">
           {contestStatus === "waiting" && (
             <>
-              Waiting for host to start the contest.  
-              You can chat freely before the contest begins.
+              Waiting for host to start the contest. You can chat freely before
+              the contest begins.
             </>
           )}
           {contestStatus === "live" && (
             <>
-              Contest is live.  
-              Joining and chat are disabled.
+              Contest is live. Joining and chat are disabled.
             </>
           )}
         </section>
 
-        {/* MAIN */}
+        {/* ---------------- MAIN GRID ---------------- */}
         <section className="grid md:grid-cols-3 gap-6">
 
           {/* PARTICIPANTS */}
@@ -94,9 +108,7 @@ function GroupContest() {
                     )}
                   </span>
 
-                  <span className="text-xs text-slate-400">
-                    Ready
-                  </span>
+                  <span className="text-xs text-slate-400">Ready</span>
                 </div>
               ))}
             </div>
@@ -153,13 +165,43 @@ function GroupContest() {
                 </div>
               )}
             </div>
-          </div>
 
+          </div>
         </section>
 
+        {/* ---------------- QUESTION PREVIEW ---------------- */}
+        <section className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">
+            Questions in this contest
+          </h2>
+
+          <div className="space-y-3">
+            {questions.map((q, i) => (
+              <div
+                key={q.id}
+                className="flex items-center justify-between bg-slate-800/60 px-4 py-3 rounded-lg"
+              >
+                <span className="text-white">
+                  {i + 1}. {q.title}
+                </span>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${
+                    q.difficulty === "easy"
+                      ? "bg-green-500/10 text-green-400"
+                      : q.difficulty === "medium"
+                      ? "bg-yellow-500/10 text-yellow-400"
+                      : "bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  {q.difficulty}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
 }
 
-export default GroupContest;
+export default GroupContestLobby;

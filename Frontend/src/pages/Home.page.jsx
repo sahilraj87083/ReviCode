@@ -1,12 +1,10 @@
 import { useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components";
 import { Feature, Step } from "../utils";
 
-gsap.registerPlugin(ScrollTrigger);
 
 function Home() {
   const root = useRef(null);
