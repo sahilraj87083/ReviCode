@@ -1,17 +1,43 @@
-import { useState, useRef } from "react";
+import { useState, useRef , useEffect} from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Button, Input, } from "../components";
 import { useNavigate } from "react-router-dom";
 import {CreateContestModal, CreateCollectionModal, EmptyState, CollectionCard} from '../components'
+import { createCollection, getMyCollections, deleteCollection } from "../services/collection.service";
 
 function Collections() {
   
     const containerRef = useRef(null);
     const [showCreate, setShowCreate] = useState(false);
+    const [collections, setCollections] = useState([])
   
     const [openContestModal, setOpenContestModal] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState(null);
+
+    useEffect(() => {
+      (async () => {
+        const response = await getMyCollections()
+        setCollections(response)
+      })()
+    })
+
+    const handleCreateCollection = async (data) => {
+      try {
+          await createCollection(data)
+          setShowCreate(false)
+      } catch (error) {
+          console.log(error)
+      }
+    }
+
+    const handleDeleteCollection = async (collectionId) => {
+      try {
+        await deleteCollection(collectionId)
+      } catch (error) {
+        console.log(error)
+      }
+    }
 
     const handleCreateContestClick = (collection) => {
         setSelectedCollection(collection);
@@ -24,23 +50,24 @@ function Collections() {
     };
 
 
+
     // mock data
-    const collections = [
-        {
-            id: "1",
-            name: "DSA Core",
-            description: "Must-do DSA questions",
-            questionsCount: 120,
-            isPublic: false,
-        },
-        {
-            id: "2",
-            name: "Binary Search",
-            description: "Binary search patterns",
-            questionsCount: 45,
-            isPublic: true,
-        },
-    ];
+    // const collections = [
+        // {
+        //     id: "1",
+        //     name: "DSA Core",
+        //     description: "Must-do DSA questions",
+        //     questionsCount: 120,
+        //     isPublic: false,
+        // },
+        // {
+        //     id: "2",
+        //     name: "Binary Search",
+        //     description: "Binary search patterns",
+        //     questionsCount: 45,
+        //     isPublic: true,
+        // },
+    // ];
 
     useGSAP(
       () => {
@@ -84,7 +111,7 @@ function Collections() {
         ) : (
           <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {collections.map((c) => (
-              <CollectionCard key={c.id} collection={c} onCreateContest = {handleCreateContestClick}/>
+              <CollectionCard key={c._id} collection={c} onCreateContest = {handleCreateContestClick} onDelete={handleDeleteCollection}/>
             ))}
           </section>
         )}
@@ -93,7 +120,10 @@ function Collections() {
 
       {/* CREATE COLLECTION MODAL */}
       {showCreate && (
-        <CreateCollectionModal onClose={() => setShowCreate(false)} />
+        <CreateCollectionModal 
+        onCreate = {handleCreateCollection}
+        onClose={() => setShowCreate(false)} 
+        />
       )}
 
       <CreateContestModal
@@ -102,9 +132,6 @@ function Collections() {
         onClose={() => setOpenContestModal(false)}
         onSubmit={handleCreateContest}
       />
-
-
-
 
     </div>
   );

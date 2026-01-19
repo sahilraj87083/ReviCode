@@ -1,10 +1,35 @@
 import {Button , Input} from '../'
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { createCollection } from '../../services/collection.service';
 
-function CreateCollectionModal({ onClose }) {
+function CreateCollectionModal({ onClose , onCreate}) {
   const modalRef = useRef(null);
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [isPublic, setIsPublic] = useState(false)
+
+
+  const handleSubmit = () => {
+
+    onCreate({
+      name,
+      description,
+      isPublic,
+    })
+    setName("")
+    setDescription("")
+    setIsPublic(false)
+    onClose()
+
+  }
+  const cancelContestSubmitHandler = () => {
+    setName("")
+    setDescription("")
+    setIsPublic(false)
+    onClose()
+  }
 
   useGSAP(() => {
     gsap.from(modalRef.current, {
@@ -26,27 +51,38 @@ function CreateCollectionModal({ onClose }) {
         </h2>
 
         <Input
+          value = {name}
+          onChange = {(e) => {setName(e.target.value)}}
           label="Collection Name"
           placeholder="e.g. DSA Core"
         />
 
         <Input
+          value = {description}
+          onChange = {(e) => {setDescription(e.target.value)}}
           label="Description"
           placeholder="Optional description"
         />
 
         <div className="flex items-center gap-2">
-          <input type="checkbox" id="public" />
+          <input 
+          checked={isPublic}
+          onChange={(e) => setIsPublic(e.target.checked)}
+          type="checkbox" id="public" />
           <label htmlFor="public" className="text-sm text-slate-300">
             Make this collection public
           </label>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost"
+          onClick = {cancelContestSubmitHandler}>
+            
             Cancel
           </Button>
-          <Button variant="primary">
+          <Button 
+          onClick = {handleSubmit}
+          variant="primary">
             Create
           </Button>
         </div>

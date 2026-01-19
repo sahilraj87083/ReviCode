@@ -24,6 +24,6 @@ export const ProtectedRoutes = (
 
         <Route path="/user/collections" element = { <Collections/> }/>
         <Route path="/user/messages" element = { <Message/> }/>
-        <Route path="/user/collection/questions" element = { <CollectionQuestions/> }/>
+        <Route path="/collections/:collectionId/questions" element = { <CollectionQuestions/> }/>
     </Route>
 )

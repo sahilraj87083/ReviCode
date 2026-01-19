@@ -29,6 +29,8 @@ function Login() {
     // if(response.errorCode === 200){
     setAuth( response.accessToken , response.user)
     navigate('/')
+    setEmail("");
+    setPassword("");
     // }
 
     }

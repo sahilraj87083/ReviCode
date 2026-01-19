@@ -20,6 +20,7 @@ import CollectionCard from './CollectionPageComponents/CollectionCard'
 import EmptyState from './CollectionPageComponents/EmptyState'
 import CreateCollectionModal from './CollectionPageComponents/CreateCollectionModal'
 import CreateContestModal from './CollectionPageComponents/CreateContestModel'
+import EmptyQuestionsState from './CollectionPageComponents/EmptyQuestionsState'
 
 import ContestRow from './ContestPageComponents/ContestRow'
 
@@ -53,6 +54,7 @@ export {
     EmptyState,
     CreateCollectionModal,
     CreateContestModal,
+    EmptyQuestionsState,
 
     ContestRow,
 

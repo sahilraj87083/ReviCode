@@ -1,48 +1,48 @@
 import { useState, useEffect } from "react";
-import {AddQuestionPanel, QuestionRow} from '../components'
+import {AddQuestionPanel, QuestionRow , EmptyQuestionsState} from '../components'
+import { getCollectionAllQuestions, getCollectionById } from "../services/collection.service";
+import { useParams } from "react-router-dom";
 
 
 function CollectionQuestions() {
     const [openAddQuestionPanel, setOpenAddQuestionPanel] = useState(false);
+    const {collectionId} = useParams()
+    // console.log(collectionId)
+
+    const [questions, setquestions] = useState([])
+    const [collection, setcollection] = useState({})
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect( () => {
+      (async() => {
+        try {
+        const response = await getCollectionAllQuestions(collectionId)
+
+        setquestions(response.questions)
+        setcollection(response.collection)
+        setIsLoading(false)
+
+      } catch (error) {
+        console.log(error)
+      }
+      })()
+
+    }, [collectionId])
+
+    // console.log(collection)
+    // console.log(questions)
 
     const handleAddQuestion = async (formData) => {
     console.log(formData);
 
-    // TODO:
-    // 1. POST /questions
-    // 2. POST /collections/:id/questions
-    // 3. Refresh questions
+      // TODO:
+      // 1. POST /questions
+      // 2. POST /collections/:id/questions
+      // 3. Refresh questions
 
-    setOpenAddQuestionPanel(false);
+      setOpenAddQuestionPanel(false);
     };
 
-
-  // mock data – replace with API
-  const collection = {
-    name: "Arrays Mastery",
-    description: "Curated array problems for interviews",
-    questionsCount: 12,
-    isPublic: true,
-  };
-
-  const questions = [
-    {
-      _id: "1",
-      title: "Two Sum",
-      difficulty: "easy",
-      platform: "LeetCode",
-      topics: ["array", "hashmap"],
-      problemUrl: "https://leetcode.com/problems/two-sum",
-    },
-    {
-      _id: "2",
-      title: "Maximum Subarray",
-      difficulty: "medium",
-      platform: "LeetCode",
-      topics: ["array", "dp"],
-      problemUrl: "https://leetcode.com/problems/maximum-subarray",
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-slate-900 text-white">
@@ -97,11 +97,20 @@ function CollectionQuestions() {
 
 
         {/* QUESTIONS LIST */}
-        <div className="space-y-4">
-          {questions.map((q, index) => (
-            <QuestionRow key={q._id} q={q} index={index} />
-          ))}
-        </div>
+        {!isLoading && questions.length === 0 ? (
+            <EmptyQuestionsState
+              onAdd={() => setOpenAddQuestionPanel(true)}
+            />
+          ) : (
+            <div className="space-y-4">
+              {questions.map((q, index) => (
+                <QuestionRow key={q._id} q={q} index={index} />
+              ))}
+            </div>
+          )}
+
+
+
         {openAddQuestionPanel && <AddQuestionPanel
             open={openAddQuestionPanel}
             onClose={() => setOpenAddQuestionPanel(false)}

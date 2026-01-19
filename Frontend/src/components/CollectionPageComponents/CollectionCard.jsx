@@ -1,4 +1,4 @@
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // function CollectionCard({ collection }) {
 //   const navigate = useNavigate()
@@ -73,18 +73,30 @@
 
 // export default CollectionCard
 
-function CollectionCard({ collection, onCreateContest }) {
+function CollectionCard({ collection, onCreateContest, onDelete }) {
+
+  const navigate = useNavigate();
   return (
     <div
-      className="p-5 rounded-xl border border-slate-800
+      className="relative p-5 rounded-xl border border-slate-800
       bg-slate-900/60 hover:border-red-500/40
       transition flex flex-col justify-between"
     >
+      {/* Delete Button */}
+      <button
+        onClick={() => onDelete(collection._id)}
+        className="absolute top-3 right-3 text-slate-400 hover:text-red-500 transition"
+        title="Delete collection"
+      >
+        <i className="ri-delete-bin-5-line text-lg"></i>
+      </button>
+
       {/* Content */}
       <div>
         <h3 className="text-lg font-semibold mb-1 text-white">
           {collection.name}
         </h3>
+
         <p className="text-slate-400 text-sm line-clamp-2">
           {collection.description || "No description"}
         </p>
@@ -101,15 +113,14 @@ function CollectionCard({ collection, onCreateContest }) {
 
       {/* Actions */}
       <div className="mt-4 flex gap-3">
-        <a
-          // href={`/collections/${collection._id}`}
-          href="/user/collection/questions"
+        <button
+          onClick={() => navigate(`/collections/${collection._id}/questions`)}
           className="flex-1 text-center px-3 py-2 text-white
           border border-slate-700 rounded-md hover:text-slate-200
           text-sm hover:border-white transition"
         >
           View
-        </a>
+        </button>
 
         <button
           onClick={() => onCreateContest(collection)}
@@ -123,5 +134,6 @@ function CollectionCard({ collection, onCreateContest }) {
     </div>
   );
 }
+
 
 export default CollectionCard;
