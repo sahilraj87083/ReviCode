@@ -2,7 +2,7 @@ import { ExternalLink } from "lucide-react";
 import {Button} from '../'
 
 
-function QuestionRow({ q, index }) {
+function QuestionRow({ q , index }) {
 
   const HandleDelete = (e) => {
     console.log("Question Deleted")

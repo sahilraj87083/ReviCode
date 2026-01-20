@@ -1,30 +1,41 @@
 import { useState } from "react";
+import { uploadQuestionService } from "../../services/question.services";
+import { addQuestionToCollection } from "../../services/collection.service";
+import { useParams } from "react-router-dom";
 
 function AddQuestionPanel({ open, onClose, onSubmit }) {
+
+  const [title, setTitle] = useState('')
+  const [platform, setPlatform] = useState("LeetCode")
+  const [problemUrl, setProblemUrl] = useState('')
+  const [difficulty, setDifficulty] = useState('medium')
+  const [topics, setTopics] = useState('')
+  const {collectionId} = useParams()
+
   const [form, setForm] = useState({
-    title: "",
-    platform: "LeetCode",
-    problemUrl: "",
-    difficulty: "easy",
-    topics: "",
+      title: "",
+      platform: "LeetCode",
+      problemUrl: "",
+      difficulty: "easy",
+      topics: "",
   });
 
   if (!open) return null;
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    onSubmit({
-      ...form,
-      topics: form.topics
-        .split(",")
-        .map((t) => t.trim().toLowerCase())
-        .filter(Boolean),
-    });
+    const data = {
+      title : title,
+      platform : platform,
+      problemUrl : problemUrl,
+      difficulty : difficulty,
+      topics : topics.split(',').map((t) => t.trim().toLowerCase())
+    }
+    await onSubmit(data)
+    
+
+    // console.log(data)
   };
 
   return (
@@ -45,8 +56,8 @@ function AddQuestionPanel({ open, onClose, onSubmit }) {
           <input
             name="title"
             placeholder="Question title"
-            value={form.title}
-            onChange={handleChange}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             required
             className="w-full p-3 rounded bg-slate-800 border border-slate-700"
           />
@@ -54,16 +65,16 @@ function AddQuestionPanel({ open, onClose, onSubmit }) {
           <input
             name="problemUrl"
             placeholder="Problem URL"
-            value={form.problemUrl}
-            onChange={handleChange}
+            value={problemUrl}
+            onChange={(e) => setProblemUrl(e.target.value)}
             required
             className="w-full p-3 rounded bg-slate-800 border border-slate-700"
           />
 
           <select
             name="platform"
-            value={form.platform}
-            onChange={handleChange}
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value)}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700"
           >
             <option>LeetCode</option>
@@ -74,8 +85,8 @@ function AddQuestionPanel({ open, onClose, onSubmit }) {
 
           <select
             name="difficulty"
-            value={form.difficulty}
-            onChange={handleChange}
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700"
           >
             <option value="easy">Easy</option>
@@ -86,8 +97,8 @@ function AddQuestionPanel({ open, onClose, onSubmit }) {
           <input
             name="topics"
             placeholder="Topics (comma separated)"
-            value={form.topics}
-            onChange={handleChange}
+            value={topics}
+            onChange={(e) => setTopics(e.target.value)}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700"
           />
 

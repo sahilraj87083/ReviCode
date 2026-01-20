@@ -1,18 +1,51 @@
 import { api } from "./api.services";
 
-export const getMyCollections = () =>
-  api.get("/collections").then(res => res.data.data);
 
-export const createCollection = (data) =>
-  api.post("/collections", data).then(res => res.data.data);
-
-export const deleteCollection = (collectionId) => 
-    api.delete(`/collections/${collectionId}`).then(res => res.data)
-
-export const getCollectionById = (collectionId) =>
-    api.get(`/collections/${collectionId}`).then(res => res.data.data)
-
-export const getCollectionAllQuestions = (collectionId) =>
-    api.get(`/collections/${collectionId}/questions`).then(res => res.data.data)
+export const getMyCollections = async () => {
+  const res = await api.get("/collections");
+  return res.data.data;
+};
 
 
+export const createCollection = async (data) => {
+  const res = await api.post("/collections", data);
+  return res.data.data;
+};
+
+
+export const deleteCollection = async (collectionId) => {
+  const res = await api.delete(`/collections/${collectionId}`);
+  return res.data.data; // consistency
+};
+
+
+export const getCollectionById = async (collectionId) => {
+  const res = await api.get(`/collections/${collectionId}`);
+  return res.data.data;
+};
+
+
+export const getCollectionAllQuestions = async (collectionId) => {
+  const res = await api.get(`/collections/${collectionId}/questions`);
+  return res.data.data; 
+  // expected: { collection, questions }
+};
+
+
+
+export const addQuestionToCollection = async (collectionId, questionId) => {
+  const res = await api.post(
+    `/collections/${collectionId}/questions`,
+    { questionId } 
+  );
+  return res.data;
+};
+
+
+
+export const removeQuestionFromCollection = async (collectionId, questionId) => {
+  const res = await api.delete(
+    `/collections/${collectionId}/questions/${questionId}`
+  );
+  return res.data;
+};

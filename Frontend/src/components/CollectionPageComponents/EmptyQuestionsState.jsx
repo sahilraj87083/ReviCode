@@ -11,7 +11,7 @@ function EmptyQuestionsState({ onAdd }) {
         onClick={onAdd}
         className="mt-6 px-5 py-2.5 bg-red-600 hover:bg-red-500 rounded-md text-sm font-semibold transition"
       >
-        Add Question
+        + Add Question
       </button>
     </div>
   );

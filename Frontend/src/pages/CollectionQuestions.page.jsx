@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import {AddQuestionPanel, QuestionRow , EmptyQuestionsState} from '../components'
-import { getCollectionAllQuestions, getCollectionById } from "../services/collection.service";
+import { addQuestionToCollection, getCollectionAllQuestions, getCollectionById } from "../services/collection.service";
 import { useParams } from "react-router-dom";
+import { uploadQuestionService } from "../services/question.services";
 
 
 function CollectionQuestions() {
@@ -13,9 +14,8 @@ function CollectionQuestions() {
     const [collection, setcollection] = useState({})
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect( () => {
-      (async() => {
-        try {
+    const fetchData = async () => {
+      try {
         const response = await getCollectionAllQuestions(collectionId)
 
         setquestions(response.questions)
@@ -25,20 +25,21 @@ function CollectionQuestions() {
       } catch (error) {
         console.log(error)
       }
-      })()
-
+    }
+    useEffect( () => {
+      fetchData()
     }, [collectionId])
-
-    // console.log(collection)
-    // console.log(questions)
 
     const handleAddQuestion = async (formData) => {
     console.log(formData);
-
-      // TODO:
-      // 1. POST /questions
-      // 2. POST /collections/:id/questions
-      // 3. Refresh questions
+      try {
+        const uploadedQuestion = await uploadQuestionService(formData)
+        await addQuestionToCollection(collectionId, uploadedQuestion._id)
+        // console.log("Added")
+        await fetchData()
+      } catch (error) {
+        console.error("Add question failed:", error);
+      }
 
       setOpenAddQuestionPanel(false);
     };
@@ -104,7 +105,7 @@ function CollectionQuestions() {
           ) : (
             <div className="space-y-4">
               {questions.map((q, index) => (
-                <QuestionRow key={q._id} q={q} index={index} />
+                <QuestionRow key={q.question._id} q={q.question} index={index} />
               ))}
             </div>
           )}
