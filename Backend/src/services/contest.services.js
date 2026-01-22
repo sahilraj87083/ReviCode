@@ -13,9 +13,14 @@ const createContestService = async ({
     durationInMin,
     visibility
 }) => {
-    const contestCode = crypto.randomBytes(4).toString("hex");
 
-    try {
+    let contestCode;
+    do {
+        contestCode = crypto.randomBytes(4).toString("hex");
+    } while (await Contest.exists({ contestCode }));
+
+
+    // try {
         const contest = await Contest.create(
             {
                 contestCode : contestCode,
@@ -24,7 +29,7 @@ const createContestService = async ({
                 questionIds : questionIds,
                 durationInMin : durationInMin,
                 visibility : visibility,
-                status : "live"
+                status : "upcoming"
             }
         )
     
@@ -33,9 +38,9 @@ const createContestService = async ({
         }
         return contest;
 
-    } catch (error) {
-        throw new ApiError(500, "Server Error while creating the contest", error.message)
-    }
+    // } catch (error) {
+    //     throw new ApiError(500, "Server Error while creating the contest", error.message)
+    // }
 }
 
 

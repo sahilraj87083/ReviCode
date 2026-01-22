@@ -15,12 +15,23 @@ import {createContestParticipantService} from '../services/contestParticipant.se
 const createContest = asyncHandler(async (req, res) => {
     const { collectionId, title, durationInMin, visibility, questionCount } = req.body;
 
+    const qCount = Number(questionCount);
+    const duration = Number(durationInMin);
+
+    if (Number.isNaN(qCount) || Number.isNaN(duration)) {
+        throw new ApiError(400, "Invalid numeric values");
+    }
+
     if(!isValidObjectId(collectionId)){
         throw new ApiError(400, "Invalid collection ID");
     }
 
-    if (!questionCount || questionCount <= 0) {
+    if (!qCount || qCount <= 0) {
         throw new ApiError(400, "questionCount must be greater than 0");
+    }
+
+    if(duration <= 0){
+        throw new ApiError(400, "Duration must be greater than 0");
     }
 
     const collection = await Collection.findOne(
@@ -34,7 +45,7 @@ const createContest = asyncHandler(async (req, res) => {
 
     let questionIds;
     try {
-        questionIds = await collection.getRandomQuestionIds(questionCount);
+        questionIds = await collection.getRandomQuestionIds(qCount);
     } catch (err) {
         throw new ApiError(400, "Not enough questions in collection");
     }
@@ -45,7 +56,7 @@ const createContest = asyncHandler(async (req, res) => {
             title,
             owner : req.user._id,
             questionIds,
-            durationInMin,
+            durationInMin : duration,
             visibility
         }
     )
@@ -57,6 +68,42 @@ const createContest = asyncHandler(async (req, res) => {
         )
 
 })
+
+const startContest = asyncHandler(async (req, res) => {
+    const { contestId } = req.params;
+
+    if (!isValidObjectId(contestId)) {
+        throw new ApiError(400, "Invalid contest ID");
+    }
+
+    const contest = await Contest.findById(contestId);
+
+    if (!contest) throw new ApiError(404, "Contest not found");
+
+    // Only host can start
+    if (contest.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "Only host can start contest");
+    }
+
+    if (contest.status !== "upcoming") {
+        throw new ApiError(400, "Contest already started");
+    }
+
+    contest.startsAt = new Date();
+    contest.endsAt = new Date(
+        contest.startsAt.getTime() + contest.durationInMin * 60 * 1000
+    );
+
+    contest.status = "live";
+
+    await contest.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, "Contest started", contest)
+    );
+});
+
+
 
 
 const joinContest = asyncHandler(async (req, res) => {
@@ -391,6 +438,7 @@ const getMyContestRank = asyncHandler( async (req, res) => {
 
 export {
     createContest,
+    startContest,
     joinContest,
     submitContest,
     getContestLeaderboard,

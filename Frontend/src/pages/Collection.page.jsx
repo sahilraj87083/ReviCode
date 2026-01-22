@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import {CreateContestModal, CreateCollectionModal, EmptyState, CollectionCard} from '../components'
 import { createCollection, getMyCollections, deleteCollection } from "../services/collection.service";
 import toast from "react-hot-toast";
-
+import {createContestService} from '../services/contest.services'
 
 function Collections() {
   
@@ -21,6 +21,7 @@ function Collections() {
     const filteredCollections = collections.filter(c =>
         c.name.toLowerCase().includes(search.toLowerCase())
     );
+    const navigate = useNavigate()
 
     useEffect(() => {
       (async () => {
@@ -28,9 +29,6 @@ function Collections() {
         setCollections(response)
       })()
     },[])
-
-    
-
 
     const handleCreateCollection = async (data) => {
       try {
@@ -63,8 +61,14 @@ function Collections() {
     };
 
     const handleCreateContest = async (data) => {
-        await createContest(data); // POST /contests
+        const contest = await createContestService(data);
+        if (contest.visibility === "private") {
+          navigate(`/user/contests/private/${contest._id}`);
+        } else {
+          navigate(`/user/contests/public/${contest._id}`);
+        }
         setOpenContestModal(false);
+
     };
 
 

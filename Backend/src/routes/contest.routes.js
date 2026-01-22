@@ -5,6 +5,7 @@ import { validate } from "../middlewares/validate.middleware.js";
 
 import {
   createContest,
+  startContest,
   joinContest,
   submitContest,
   getContestLeaderboard,
@@ -29,11 +30,13 @@ router.route("/")
             .withMessage("Title must be between 3 and 100 characters"),
 
         body("durationInMin")
+            .toInt()
             .isInt({ min: 1, max: 720 })
             .withMessage("Duration must be between 1 and 720 minutes"),
 
         body("questionCount")
-            .isInt({ min: 1, max: 10})
+            .toInt()
+            .isInt({ min: 1, max: 10 })
             .withMessage("Invalid question count"),
 
         body("visibility")
@@ -44,6 +47,19 @@ router.route("/")
     validate,
     createContest
 );
+
+// start contest
+router.route("/:contestId/start")
+.post(
+    verifyJWT,
+    [
+        param("contestId").isMongoId().withMessage("Invalid contest ID"),
+    ],
+    validate,
+    startContest
+);
+
+
 
 // get contest page
 router.route("/:contestId")

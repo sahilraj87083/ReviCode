@@ -53,16 +53,27 @@ const contestSchema = new mongoose.Schema(
 
 contestSchema.index({ endsAt: 1 });
 
-contestSchema.pre("save" , function (next) {
-    if (!this.startsAt) {
-        this.startsAt = new Date();
-    }
+// contestSchema.pre("save" , function () {
+//     if (!this.startsAt) {
+//         this.startsAt = new Date();
+//     }
 
-    // Contest expires after 7 days
-    this.endsAt = new Date(this.startsAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+//     // Contest expires after 7 days
+//     if (!this.endsAt) {
+//         this.endsAt = new Date(
+//             this.startsAt.getTime() + 7 * 24 * 60 * 60 * 1000
+//         );
+//     }
 
-    // next()
-})
+// })
+
+contestSchema.pre("save", function () {
+  // Only for new contests
+  if (this.isNew) {
+    this.status = "upcoming";
+  }
+});
+
 
 contestSchema.statics.expireContests = async function () {
     
