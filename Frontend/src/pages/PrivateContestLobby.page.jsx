@@ -4,23 +4,24 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Copy } from "lucide-react";
 import { MetaCard, DifficultyBadge,Button } from "../components";
+import { useState, useEffect } from "react";
+import { getContestByIdService, startContestService } from "../services/contest.services";
 
 function PrivateContestLobby() {
   const { contestId } = useParams();
   const navigate = useNavigate();
   const containerRef = useRef(null);
 
-  // mock data (replace with API)
-  const contest = {
-    title: "DSA Sprint #14",
-    contestCode: "AB12CD",
-    durationInMin: 60,
-    questions: [
-      { _id: "1", title: "Two Sum", difficulty: "easy" },
-      { _id: "2", title: "Max Subarray", difficulty: "medium" },
-      { _id: "3", title: "Longest Substring", difficulty: "medium" },
-    ],
-  };
+  const [contest, setContest] = useState()
+
+
+  useEffect(() => {
+    (async () => {
+      const data = await getContestByIdService(contestId);
+      setContest(data);
+    })();
+  }, [contestId]);
+
 
   useGSAP(() => {
     gsap.from(containerRef.current.children, {
@@ -32,8 +33,13 @@ function PrivateContestLobby() {
     });
   });
 
+  const startContestHandler = async () => {
+      await startContestService(contestId)
+      navigate(`/contests/${contestId}/live`)
+  }
+
   const copyCode = () => {
-    navigator.clipboard.writeText(contest.contestCode);
+      navigator.clipboard.writeText(contest.contestCode);
   };
 
   return (
@@ -45,27 +51,27 @@ function PrivateContestLobby() {
 
         {/* HEADER */}
         <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">{contest.title}</h1>
+            <h1 className="text-3xl font-bold">{contest?.title}</h1>
           <div className="flex gap-4 justify-between items-center">
             
-            <div className="flex justify-center items-center gap-8">
-                <span className="px-4 py-2 bg-slate-800 rounded-md font-mono text-lg tracking-widest">
-                Code : {contest.contestCode}
+            <div className="flex justify-center items-center gap-3">
+                <span className="px-3 py-2 bg-slate-800 rounded-md font-mono text-lg tracking-widest">
+                Code : {contest?.contestCode}
                 </span>
 
                 <button
-                onClick={copyCode}
-                className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 transition"
-                title="Copy contest code"
-                >
-                <Copy size={18} />
+                  onClick={copyCode}
+                  className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 transition"
+                  title="Copy contest code"
+                  >
+                  <Copy size={20} />
                 </button>
             </div>
 
             {/* START BUTTON */}
             <div className="text-center">
             <Button
-                onClick={() => navigate(`/contest/${contestId}/live`)}
+                onClick={startContestHandler}
                 size = "md"
             >
                 Start Contest
@@ -83,8 +89,8 @@ function PrivateContestLobby() {
 
         {/* META */}
         <div className="grid grid-cols-2 gap-6 text-center">
-          <MetaCard label="Questions" value={contest.questions.length} />
-          <MetaCard label="Duration" value={`${contest.durationInMin} min`} />
+          <MetaCard label="Questions" value={contest?.questions.length} />
+          <MetaCard label="Duration" value={`${contest?.durationInMin} min`} />
         </div>
 
         {/* QUESTIONS PREVIEW */}
@@ -94,7 +100,7 @@ function PrivateContestLobby() {
           </h2>
 
           <div className="space-y-3">
-            {contest.questions.map((q, i) => (
+            {contest?.questions.map((q, i) => (
               <div
                 key={q._id}
                 className="flex items-center justify-between text-sm bg-slate-800/60 px-4 py-3 rounded-md"
@@ -109,7 +115,7 @@ function PrivateContestLobby() {
         </div>
 
         {/* WARNING */}
-        <div className="border border-red-500/30 bg-red-500/5 rounded-xl p-5 text-sm text-red-400">
+        <div className="border text-center border-red-500/30 bg-red-500/5 rounded-xl p-5 text-sm text-red-400">
           ⏱ Timer will start as soon as you click <b>Start Contest</b>.  
           You cannot pause or restart the contest.
         </div>

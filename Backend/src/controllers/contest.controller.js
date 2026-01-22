@@ -140,8 +140,7 @@ const joinContest = asyncHandler(async (req, res) => {
     const participant = await createContestParticipantService({
         contestId: contest._id,
         userId: req.user._id,
-        joinedAt: now,
-        startedAt: now,
+        joinedAt: now
     });
 
     const attempts = contest.questionIds.map(q => ({
@@ -286,7 +285,7 @@ const getContestLeaderboard = asyncHandler(async (req, res) => {
 })
 
 
-const getContest = asyncHandler(async (req, res) => {
+const getContestById = asyncHandler(async (req, res) => {
 
     const {contestId} = req.params;
 
@@ -383,6 +382,17 @@ const getContest = asyncHandler(async (req, res) => {
 
 })
 
+const getActiveContests = asyncHandler(async (req, res) => {
+    const contests = await Contest.find({
+        owner: req.user._id,
+        status: { $in: ["upcoming", "live"] },
+    })
+    .select("title status startsAt endsAt visibility")
+    .sort({ createdAt: -1 });
+
+    return res.json(new ApiResponse(200, "My contests", contests));
+});
+
 
 const getMyContestRank = asyncHandler( async (req, res) => {
     const { contestId } = req.params;
@@ -442,6 +452,7 @@ export {
     joinContest,
     submitContest,
     getContestLeaderboard,
-    getContest,
+    getContestById,
+    getActiveContests,
     getMyContestRank
 }

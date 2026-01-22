@@ -205,7 +205,7 @@ function LiveContest() {
                 className="p-2 rounded-md bg-red-600 hover:bg-red-500 transition
                             flex items-center justify-center"
                 >
-                <i class="ri-send-ins-fill"></i>
+                <i className="ri-send-ins-fill"></i>
                 </Button>
             </div>
             </div>

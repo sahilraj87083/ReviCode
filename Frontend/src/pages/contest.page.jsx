@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { useRef, useState , useEffect} from "react";
 import { Input, Button, Select, ContestRow } from "../components";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import { getActiveContestsService } from "../services/contest.services";
+gsap.registerPlugin(ScrollTrigger);
 
 function Contests() {
     const containerRef = useRef(null);
@@ -20,10 +21,17 @@ function Contests() {
     const [contestQuestionCount, setContestQuestionCount] = useState(4)
     const [contestDuration , setContestDuration] = useState(90)
     const [contestVisibility, setContestVisiblity] = useState("private")
+    const [contests, setContests] = useState([]);
 
-
+    useEffect(() => {
+  (async () => {
+    const data = await getActiveContestsService();
+    setContests(data);
+  })();
+}, []);
 
     const QUESTION_COUNT_OPTIONS = [
+        { label: "1 Questions", value: 1 },
         { label: "2 Questions", value: 2 },
         { label: "3 Questions", value: 3 },
         { label: "4 Questions", value: 4 },
@@ -47,6 +55,28 @@ function Contests() {
         { label: "DSA Core", value: "1" },
         { label: "Binary Search", value: "2" },
     ];
+
+    const navigateToContest = (contest) => {
+      if (contest.status === "upcoming") {
+          // lobby
+          if (contest.visibility === "private") {
+              navigate(`/user/contests/private/${contest._id}`);
+          } else {
+              navigate(`/user/contests/public/${contest._id}`);
+          }
+      }
+
+      if (contest.status === "live") {
+          // live contest
+          navigate(`/contests/${contest._id}/live`);
+      }
+
+      if (contest.status === "ended") {
+          // leaderboard / result
+          navigate(`/contests/${contest._id}/leaderboard`);
+      }
+    };
+
 
     useGSAP(
       () => {
@@ -78,25 +108,35 @@ function Contests() {
           ease: "power2.out",
           delay: 0.3,
         });
-
-        // ACTIVE CONTESTS
-        gsap.from(".contest-row", {
-          scrollTrigger: {
-            trigger: ".active-contests",
-            start: "top 80%",
-            once: true,
-          },
-          opacity: 0,
-          y: 20,
-          duration: 0.6,
-          stagger: 0.15,
-          ease: "power2.out",
-        });
-
-        
-      },
-      { scope: containerRef }
+        },
+      { scope: containerRef, }
     );
+
+    // ACTIVE CONTESTS
+    useGSAP(
+      () => {
+        if (!contests.length) return;
+        gsap.fromTo(
+            ".contest-row",
+            { opacity: 0, y: 30 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              stagger: 0.15,
+              scrollTrigger: {
+                trigger: activeRef.current,
+                start: "top 80%",
+                once: true,
+              },
+            }
+          );
+      },
+      { dependencies: [contests] }
+    );
+
+
+ 
 
 
   return (
@@ -243,16 +283,13 @@ function Contests() {
           </h2>
 
           <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl divide-y divide-slate-700/40">
-            <ContestRow
-              title="DSA Sprint #14"
-              status="Live"
-              action="Resume"
-            />
-            <ContestRow
-              title="Graphs Weekly"
-              status="Upcoming"
-              action="View"
-            />
+            {contests.map((c) => (
+              <ContestRow
+                key={c._id}
+                contest={c}
+                onNavigate={navigateToContest}
+              />
+            ))}
           </div>
         </section>
 

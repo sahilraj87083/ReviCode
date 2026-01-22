@@ -9,8 +9,9 @@ import {
   joinContest,
   submitContest,
   getContestLeaderboard,
-  getContest,
-  getMyContestRank
+  getContestById,
+  getMyContestRank,
+  getActiveContests
 } from "../controllers/contest.controller.js";
 
 const router = Router();
@@ -59,9 +60,13 @@ router.route("/:contestId/start")
     startContest
 );
 
+router.route('/active')
+.get(
+    verifyJWT,
+    getActiveContests
+)
 
-
-// get contest page
+// get contest by id
 router.route("/:contestId")
 .get(
     verifyJWT,
@@ -71,7 +76,7 @@ router.route("/:contestId")
             .withMessage("Invalid contest ID or code"),
     ],
     validate,
-    getContest
+    getContestById
 );
 
 // join contest

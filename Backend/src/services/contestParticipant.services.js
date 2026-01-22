@@ -5,8 +5,7 @@ const createContestParticipantService = async (
     {
         contestId,
         userId,
-        joinedAt,
-        startedAt,
+        joinedAt
     }
 ) => {
     try {
@@ -14,8 +13,7 @@ const createContestParticipantService = async (
         const participant = await ContestParticipant.create({
             contestId : contestId,
             userId : userId,
-            joinedAt : joinedAt,
-            startedAt : startedAt
+            joinedAt : joinedAt
         })
 
         if(!participant){

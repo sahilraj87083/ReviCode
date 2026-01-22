@@ -19,7 +19,7 @@ export const ProtectedRoutes = (
         <Route path="/user/dashboard" element = { <Dashboard/> }/>
         <Route path="/user/profile/:username" element = { <MyProfile/> }/>
         <Route path="/user/contests" element = { <Contests/> }/>
-        <Route path="/user/contests/live" element = { <LiveContest/> }/>
+        <Route path="/contests/:contestId/live" element = { <LiveContest/> }/>
         <Route path="/user/contests/public/:contestId" element = { <GroupContestLobby/> }/>
         <Route path="/user/contests/private/:contestId" element = { <PrivateContestLobby/> }/>
 

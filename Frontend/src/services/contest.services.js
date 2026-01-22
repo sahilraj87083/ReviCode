@@ -4,9 +4,14 @@ import { api } from "./api.services";
 export const createContestService = (data) =>
   api.post("/contests", data).then(res => res.data.data);
 
+/* GET CONTEST by ID */
+export const getContestByIdService = (contestId) =>
+  api.get(`/contests/${contestId}`).then(res => res.data.data);
+
 /* GET CONTEST */
-export const getContestService = (contestId) =>
-  api.get(`/contests/${contestId}/start`).then(res => res.data.data);
+export const getActiveContestsService = () =>
+  api.get("/contests/active").then(res => res.data.data);
+
 
 /* JOIN */
 export const joinContestService = (contestId) =>
@@ -14,7 +19,7 @@ export const joinContestService = (contestId) =>
 
 /* START (host only) */
 export const startContestService = (contestId) =>
-  api.patch(`/contests/${contestId}/start`).then(res => res.data.data);
+  api.post(`/contests/${contestId}/start`).then(res => res.data.data);
 
 /* SUBMIT */
 export const submitContestService = (contestId, attempts) =>
