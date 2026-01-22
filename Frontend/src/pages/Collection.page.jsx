@@ -5,6 +5,8 @@ import { Button, Input, } from "../components";
 import { useNavigate } from "react-router-dom";
 import {CreateContestModal, CreateCollectionModal, EmptyState, CollectionCard} from '../components'
 import { createCollection, getMyCollections, deleteCollection } from "../services/collection.service";
+import toast from "react-hot-toast";
+
 
 function Collections() {
   
@@ -26,16 +28,20 @@ function Collections() {
       try {
           await createCollection(data)
           setShowCreate(false)
+          toast.success("Collection created successfully")
       } catch (error) {
           console.log(error)
+          toast.error("Failed to create new collection. Please try again")
       }
     }
 
     const handleDeleteCollection = async (collectionId) => {
       try {
         await deleteCollection(collectionId)
+        toast.success("Collection deleted successfully")
       } catch (error) {
         console.log(error)
+        toast.error("Failed to delete the collection. Please try again")
       }
     }
 

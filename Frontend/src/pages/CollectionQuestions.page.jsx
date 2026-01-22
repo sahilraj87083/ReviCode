@@ -59,8 +59,10 @@ function CollectionQuestions() {
     const handleRemoveQuestionFromCollection = async (collectionId, questionId) => {
       try {
         await removeQuestionFromCollection(collectionId, questionId)
+        toast.success("Question removed successfully")
       } catch (error) {
-        console.log("Error while removing question from collection ", error)
+        toast.error("Failed to remove question from collection")
+        // console.log("Error while removing question from collection ", error)
       }
       fetchData()
     }

@@ -8,11 +8,10 @@ function QuestionRow({ q , index, removeQuestion }) {
   const {collectionId} = useParams()
 
   const HandleRemove = async (e) => {
-    
     await removeQuestion(collectionId, q._id)
-    console.log("Question Removed")
-
   }
+
+
   return (
     <div
       className="flex items-center justify-between

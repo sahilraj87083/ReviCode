@@ -70,14 +70,24 @@ function Questions() {
 
     const handleBulkDelete = async () => {
         if (!confirm("Delete selected questions?")) return;
-        await Promise.all([...selected].map(deleteQuestionService));
-        setSelected(new Set());
-        fetchQuestions();
+        try {
+            await Promise.all([...selected].map(deleteQuestionService));
+            setSelected(new Set());
+            fetchQuestions();
+            toast.success("Questions Deleted successfully")
+        } catch (error) {
+            toast.error("failed to delete Question. Please try again")
+        }
     };
 
     const deleteQuestionHandler = async (questionId) => {
-        await deleteQuestionService(questionId)
-        await fetchQuestions()
+        try {
+            await deleteQuestionService(questionId)
+            toast.success("Question Deleted successfully")
+            await fetchQuestions()
+        } catch (error) {
+            toast.error("failed to delete Question. Please try again")
+        }
     }
 
     const handleUploadQuestion = async (formData) => {
