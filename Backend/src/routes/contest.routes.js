@@ -57,6 +57,7 @@ router.route("/:contestId/start")
     startContest
 );
 
+// get active contests
 router.route('/active')
 .get(
     verifyJWT,
