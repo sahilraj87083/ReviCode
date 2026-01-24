@@ -8,6 +8,7 @@ import {RouterProvider} from 'react-router-dom'
 import {router} from './routes/index.routes.jsx'
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { UserContextProvider } from './contexts/UserContext.jsx'
+import { SocketContextProvider } from './contexts/socket.context.jsx'
 import { Toaster } from "react-hot-toast";
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,8 +16,11 @@ gsap.registerPlugin(ScrollTrigger);
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <UserContextProvider>
-      <Toaster position="top-right" reverseOrder={false} />
-      <RouterProvider  router={router}/>
+      <SocketContextProvider>
+        <Toaster position="top-right" reverseOrder={false} />
+        <RouterProvider  router={router}/>
+      </SocketContextProvider>
+      
     </UserContextProvider>
   </StrictMode>,
 )
