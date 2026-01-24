@@ -7,7 +7,7 @@ export const joinContestService = (contestId) =>
 
 
 /* LEAVE CONTEST*/
-export const leaveContestService = (contestId) => {
+export const leaveContestService = async (contestId) => {
     api.delete(`/contest-participants/${contestId}/leave`).then(res => res.data.data);
 }
 
