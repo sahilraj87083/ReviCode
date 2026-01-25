@@ -355,23 +355,25 @@ const getJoinedContests = asyncHandler(async (req, res) => {
     const { page, limit } = req.query;
     const { skip, limit: l, page: p } = paginate({ page, limit });
 
-    const [data, total] = await Promise.all([
-        ContestParticipant.aggregate([
-            { $match: { userId: req.user._id } },
-            {
-                $lookup: {
+    const basePipeline = [
+        { $match: { userId: req.user._id } },
+        {
+            $lookup: {
                 from: "contests",
                 localField: "contestId",
                 foreignField: "_id",
                 as: "contest"
-                }
-            },
-            { $unwind: "$contest" },
+            }
+        },
+        {   $unwind: "$contest" },
+        {
+            $match: { "contest.owner": { $ne: req.user._id } }
+        }
+    ];
 
-            // EXCLUDE contests user created
-            {
-                $match: { "contest.owner": { $ne: req.user._id } }
-            },
+    const [data, countResult] = await Promise.all([
+        ContestParticipant.aggregate([
+            ...basePipeline,
             { $sort: { joinedAt: -1 } },
             { $skip: skip },
             { $limit: l },
@@ -384,13 +386,15 @@ const getJoinedContests = asyncHandler(async (req, res) => {
                     endsAt: "$contest.endsAt",
                     visibility: "$contest.visibility"
                 }
-            },
-            { $group: { _id: "$_id", doc: { $first: "$$ROOT" } } },
-            { $replaceRoot: { newRoot: "$doc" } }
-
+            }
         ]),
-        ContestParticipant.countDocuments({ userId: req.user._id })
+
+        ContestParticipant.aggregate([
+            ...basePipeline,
+            { $count: "total" }
+        ])
     ]);
+    const total = countResult[0]?.total || 0;
 
     return res.json(
         new ApiResponse(200, "Joined contests", {

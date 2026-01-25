@@ -6,11 +6,13 @@ export const useContestList = (type) => {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [totalContest, setTotalContest] = useState(0)
 
     useEffect(() => {
         setContests([]);
         setPage(1);
         setHasMore(true);
+        setTotalContest(0)
     }, [type]);
 
     const serviceMap = {
@@ -31,7 +33,7 @@ export const useContestList = (type) => {
                 res.contests.forEach(c => map.set(c._id, c));
                 return Array.from(map.values());
             });
-
+            setTotalContest(res.meta.total)
             setHasMore(page < res.meta.pages);
             setPage(p => p + 1);
         } finally {
@@ -39,5 +41,5 @@ export const useContestList = (type) => {
         }
     }, [type, page, loading, hasMore]);
 
-    return { contests, fetchMore, loading, hasMore };
+    return { contests, fetchMore, loading, hasMore , totalContest };
 };
