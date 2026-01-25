@@ -3,7 +3,7 @@ import { Input, Button, Select, ContestRow } from "../components";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { getActiveContestsService } from "../services/contest.services";
+import { getActiveContestsService , getAllContestsService} from "../services/contest.services";
 import { getMyCollections } from "../services/collection.service";
 import { createContestService } from "../services/contest.services";
 import { joinContestService } from "../services/contestParticipant.service";
@@ -18,6 +18,8 @@ function Contests() {
     const actionRef = useRef(null);
     const navRef = useRef(null);
     const activeRef = useRef(null);
+    const allCache = useRef(null);
+
     const { socket } = useSocketContext();
 
     // join contest by code 
@@ -38,11 +40,12 @@ function Contests() {
 
 
     const [activeContests, setActiveContests] = useState([]);
+    const [allContests, setAllContests] = useState([]);
 
     useEffect(() => {
       (async () => {
           const data = await getActiveContestsService();
-          setActiveContests(data);
+          setActiveContests(data.contests);
 
           const myCollections = await getMyCollections();
           setCollections(myCollections);
@@ -55,6 +58,7 @@ function Contests() {
       })();
 
     }, []);
+    const createdCache = useRef()
 
 
     const DURATION_OPTIONS = [
@@ -107,9 +111,19 @@ function Contests() {
           navigate(`/user/contests/public/${participant.contestId}`);
         } catch (error) {
             console.log("contest is private ",error)
+            toast.error("Contest Already Started")
             
         }
     }
+
+    const handleAllContestClick = async () => {
+      if (allCache.current) return allCache.current;
+
+      const res = await getAllContestsService();
+      allCache.current = res.contests;
+      setAllContests(res.contests);
+      return res.contests;
+    };
       
 
     const navigateToContest = (contest) => {
@@ -312,7 +326,7 @@ function Contests() {
         <section ref={navRef} className="flex flex-col gap-2">
           <div className="flex text-center justify-center ">
               <div
-                  onClick={(e) => navigate("/created-contests")}
+                  onClick={(e) => navigate("/contests/all")}
                   className="cursor-pointer w-full bg-slate-900/60 border border-slate-700/50 rounded-xl p-6 hover:border-red-500 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 "
               >
                   <h3 className="text-lg font-semibold text-white">
@@ -322,10 +336,11 @@ function Contests() {
                   Contests you have participated
                   </p>
               </div>
+              
           </div>
           <div className="grid md:grid-cols-2 gap-6">
                 <div
-                  onClick={(e) => navigate("/created-contests")}
+                  onClick={(e) => navigate("/contests/created")}
                   className="cursor-pointer bg-slate-900/60 border border-slate-700/50 rounded-xl p-6 hover:border-red-500 hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
               >
                   <h3 className="text-lg font-semibold text-white">
@@ -337,7 +352,7 @@ function Contests() {
                 </div>
 
                 <div
-                    onClick={() => navigate("/joined-contests")}
+                    onClick={() => navigate("/contests/joined")}
                     className="cursor-pointer bg-slate-900/60 border border-slate-700/50 rounded-xl p-6 hover:border-red-500 hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
                 >
                     <h3 className="text-lg font-semibold text-white">
@@ -359,7 +374,14 @@ function Contests() {
             Your Active Contests
           </h2>
 
-          <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl divide-y divide-slate-700/40">
+          <div 
+          className="
+            bg-slate-900/60 border border-slate-700/50 rounded-2xl
+            divide-y divide-slate-700/40
+            max-h-[320px] overflow-y-auto
+            scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800
+          "
+           >
             {activeContests.map((c) => (
               <ContestRow
                 key={c._id}
