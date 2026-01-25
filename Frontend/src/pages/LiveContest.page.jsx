@@ -56,8 +56,17 @@ function LiveContest() {
   const submitContest = async (e) => {
     e.preventDefault();
     const payload = {
-    attempts: Object.values(attempts)
-  };
+      attempts: Object.values(attempts)
+    };
+
+    try {
+      console.log(payload)
+      await submitContestService(contestId, payload);
+      toast.success("Contest Submitted")
+      navigate('/user/dashboard')
+    } catch (error) {
+      toast.error("Try again")
+    }
 
     console.log("submitted", payload)
 
@@ -65,9 +74,14 @@ function LiveContest() {
 
 
   const fetchContest = async () => {
-      const contest = await getContestByIdService(contestId);
-      setContest(contest);
-      setContestQuestions(contest.questions);
+      try {
+        const contest = await getContestByIdService(contestId);
+        setContest(contest);
+        setContestQuestions(contest.questions);
+      } catch (error) {
+        toast.error("No Contest Found")
+        navigate('/user/contests')
+      }
   };
 
   // Fetch contest once
@@ -77,10 +91,6 @@ function LiveContest() {
           await fetchContest();
         }
       )()
-      console.log(contest?.status)
-      if(contest?.status === "ended"){
-        navigate('/user/contests')
-      }
   }, [contestId])
 
   // socket event
@@ -104,11 +114,16 @@ function LiveContest() {
     (async () => {
       try {
         const data = await enterLiveContestService(contestId);
+        if(data.subsubmissionStatus === 'submitted'){
+          toast.error("Contest Already Submitted")
+          navigate('/user/dashboard')
+        }
         setEndsAt(data.endsAt);
         setStartedAt(data.startedAt);
       } catch (err) {
-        console.error(err);
+        // console.error(err);
         toast.error("Failed to start contest");
+        navigate('/user/contests')
       }
     })();
   }, [contest?.status, contestId]);
@@ -133,9 +148,9 @@ function LiveContest() {
 
   useEffect(() => {
     if (timeLeft === 0 && contest?.status === "live") {
-      toast.success("Contest auto-submitted");
+      toast.success("Contest submitted");
       navigate("/user/dashboard");
-    }
+    }  
   }, [timeLeft]);
 
 

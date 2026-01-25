@@ -9,6 +9,9 @@ import {
     getContestLeaderboard,
     getContestById,
     getActiveContests,
+    getCreatedContests,
+    getAllContests,
+    getJoinedContests
 } from "../controllers/contest.controller.js";
 
 const router = Router();
@@ -62,6 +65,27 @@ router.route('/active')
 .get(
     verifyJWT,
     getActiveContests
+)
+
+// get created contest
+router.route('/created')
+.get(
+    verifyJWT,
+    getCreatedContests
+)
+
+// get all contest 
+router.route('/all')
+.get(
+    verifyJWT,
+    getAllContests
+)
+// get joined contest
+
+router.route('/joined')
+.get(
+    verifyJWT,
+    getJoinedContests
 )
 
 // get contest by id

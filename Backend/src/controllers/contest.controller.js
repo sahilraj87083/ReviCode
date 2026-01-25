@@ -7,7 +7,7 @@ import mongoose, { isValidObjectId } from 'mongoose'
 import { Contest } from "../models/contest.model.js";
 import { Collection } from "../models/collection.model.js"
 import { ContestParticipant } from '../models/contestParticipant.model.js'
-import { createContestService } from '../services/contest.services.js'
+import { createContestService, paginate} from '../services/contest.services.js'
 import { createContestParticipantService } from "../services/contestParticipant.services.js";
 
 import { io } from '../socket.js';
@@ -286,15 +286,152 @@ const getContestById = asyncHandler(async (req, res) => {
 })
 
 const getActiveContests = asyncHandler(async (req, res) => {
-    const contests = await Contest.find({
-        owner: req.user._id,
-        status: { $in: ["upcoming", "live"] },
-    })
-    .select("title status startsAt endsAt visibility")
-    .sort({ createdAt: -1 });
 
-    return res.json(new ApiResponse(200, "My contests", contests));
+    const { page, limit } = req.query;
+    const { skip, limit: l, page: p } = paginate({ page, limit });
+
+    const filter = {
+        owner: req.user._id,
+        status: { $in: ["upcoming", "live"] }
+    };
+    const [contests, total] = await Promise.all([
+        Contest.find(filter)
+        .select("title status startsAt endsAt visibility")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(l),
+        Contest.countDocuments(filter)
+    ]);
+
+    return res.json(
+        new ApiResponse(200, "Active contests", {
+        contests,
+        meta: {
+            page: p,
+            limit: l,
+            total,
+            pages: Math.ceil(total / l)
+        }
+        })
+    );
 });
+
+const getCreatedContests = asyncHandler(async (req, res) => {
+    const { page, limit, status } = req.query;
+    const { skip, limit: l, page: p } = paginate({ page, limit });
+
+    const filter = {
+        owner: req.user._id
+    };
+
+    if (status) {
+        filter.status = status; // upcoming | live | ended
+    }
+
+    const [contests, total] = await Promise.all([
+        Contest.find(filter)
+        .select("title status startsAt endsAt visibility")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(l),
+        Contest.countDocuments(filter)
+    ]);
+
+    return res.json(
+        new ApiResponse(200, "Created contests", {
+        contests,
+        meta: {
+            page: p,
+            limit: l,
+            total,
+            pages: Math.ceil(total / l)
+        }
+        })
+    );
+});
+
+
+const getJoinedContests = asyncHandler(async (req, res) => {
+    const { page, limit } = req.query;
+    const { skip, limit: l, page: p } = paginate({ page, limit });
+
+    const [data, total] = await Promise.all([
+        ContestParticipant.aggregate([
+        { $match: { userId: req.user._id } },
+        {
+            $lookup: {
+            from: "contests",
+            localField: "contestId",
+            foreignField: "_id",
+            as: "contest"
+            }
+        },
+        { $unwind: "$contest" },
+        { $sort: { joinedAt: -1 } },
+        { $skip: skip },
+        { $limit: l },
+        {
+            $project: {
+            _id: "$contest._id",
+            title: "$contest.title",
+            status: "$contest.status",
+            startsAt: "$contest.startsAt",
+            endsAt: "$contest.endsAt",
+            visibility: "$contest.visibility"
+            }
+        }
+        ]),
+        ContestParticipant.countDocuments({ userId: req.user._id })
+    ]);
+
+    return res.json(
+        new ApiResponse(200, "Joined contests", {
+        contests: data,
+        meta: {
+            page: p,
+            limit: l,
+            total,
+            pages: Math.ceil(total / l)
+        }
+        })
+    );
+});
+
+const getAllContests = asyncHandler(async (req, res) => {
+    const { page, limit, status } = req.query;
+    const { skip, limit: l, page: p } = paginate({ page, limit });
+
+    const filter = {
+        visibility: "public"
+    };
+
+    if (status) {
+        filter.status = status;
+    }
+
+    const [contests, total] = await Promise.all([
+        Contest.find(filter)
+        .select("title status startsAt endsAt owner visibility")
+        .populate("owner", "username fullName avatar")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(l),
+        Contest.countDocuments(filter)
+    ]);
+
+    return res.json(
+        new ApiResponse(200, "All public contests", {
+        contests,
+        meta: {
+            page: p,
+            limit: l,
+            total,
+            pages: Math.ceil(total / l)
+        }
+        })
+    );
+});
+
 
 
 
@@ -304,4 +441,7 @@ export {
     getContestLeaderboard,
     getContestById,
     getActiveContests,
+    getCreatedContests,
+    getJoinedContests,
+    getAllContests
 }

@@ -32,6 +32,9 @@ const joinContest = asyncHandler(async (req, res) => {
 
     if (!contest) throw new ApiError(404, "Contest not found");
 
+    if (contest.status === "live")
+        throw new ApiError(403, "Contest already started");
+
     if (contest.status === "ended")
         throw new ApiError(403, "Contest already ended");
 
@@ -112,6 +115,7 @@ const enterLiveContest = asyncHandler(async (req, res) => {
             new ApiResponse(200, "Already submitted", {
                 startedAt: participant.startedAt,
                 endsAt: participant.finishedAt,
+                submissionStatus : participant.submissionStatus,
             })
         );
     }
