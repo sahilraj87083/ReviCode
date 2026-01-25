@@ -24,7 +24,7 @@ export const enterLiveContestService = async (contestId) => {
 
 /* SUBMIT */
 export const submitContestService = (contestId, attempts) =>
-    api.post(`/contest-participants/${contestId}/submit`, { attempts }).then(res => res.data.data);;
+    api.post(`/contest-participants/${contestId}/submit`,  attempts ).then(res => res.data.data);;
 
 
 /* MY RANK */
