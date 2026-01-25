@@ -76,6 +76,10 @@ function LiveContest() {
   const fetchContest = async () => {
       try {
         const contest = await getContestByIdService(contestId);
+        if(contest.status === 'ended'){
+          toast.error('Contest Already Submitted')
+          navigate('/user/dashboard')
+        }
         setContest(contest);
         setContestQuestions(contest.questions);
       } catch (error) {
