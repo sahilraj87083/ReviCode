@@ -23,9 +23,16 @@ function ContestList({ contests, loading, hasMore, onLoadMore }) {
         <div className="p-4 text-center text-slate-400">Loading…</div>
       )}
 
-      {!hasMore && (
+      {/* {!hasMore && (
         <div className="p-4 text-center text-slate-500">No more contests</div>
+      )} */}
+
+      {!loading && contests.length === 0 && (
+        <div className="p-6 text-center text-slate-400">
+            No contests found
+        </div>
       )}
+
     </div>
   );
 }
