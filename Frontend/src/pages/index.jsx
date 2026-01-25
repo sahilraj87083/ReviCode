@@ -12,7 +12,7 @@ import Message from './Message.page.jsx'
 import CollectionQuestions from './CollectionQuestions.page.jsx'
 import PrivateContestLobby from './PrivateContestLobby.page.jsx'
 import Questions from './Questions.page.jsx'
-
+import ContestListPage from './ContestsListPage.jsx'
 
 export {
     Home,
@@ -28,5 +28,6 @@ export {
     Message,
     CollectionQuestions,
     PrivateContestLobby,
-    Questions
+    Questions,
+    ContestListPage
 }

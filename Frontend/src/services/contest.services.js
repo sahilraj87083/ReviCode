@@ -13,6 +13,25 @@ export const startContestService = (contestId) =>
 export const getActiveContestsService = () =>
     api.get("/contests/active").then(res => res.data.data);
 
+/* GET All CONTEST */
+export const getAllContestsService = async () => {
+    const res = await api.get("/contests/all")
+    return res.data.data
+}
+
+/* GET CREATED CONTEST */
+export const getCreatedContestsService = async () => {
+    const res = await api.get("/contests/created")
+    return res.data.data
+}
+
+/* GET JOINED CONTEST */
+export const getJoinedContestsService = async () => {
+    const res = await api.get("/contests/joined")
+    return res.data.data
+}
+
+
 
 /* GET CONTEST by ID */
 export const getContestByIdService = (contestId) =>
