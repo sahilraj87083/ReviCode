@@ -9,7 +9,8 @@ import {
   getMyCollections,
   getCollectionById,
   updateCollection,
-  getCollectionQuestions
+  getCollectionQuestions,
+  getPublicCollectionQuestions
 } from "../controllers/collection.controller.js";
 
 const router = Router();
@@ -112,6 +113,17 @@ router.route("/:collectionId/questions")
     validate,
     getCollectionQuestions
 );
+
+router.route('/public/:collectionId/questions')
+.get(
+    [
+        param('collectionId')
+            .isMongoId()
+            .withMessage("Invalid collection ID"),
+    ],
+    validate,
+    getPublicCollectionQuestions
+)
 
 
 

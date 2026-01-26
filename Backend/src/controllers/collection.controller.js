@@ -207,6 +207,59 @@ const getCollectionQuestions = asyncHandler( async (req, res) => {
         );
 })
 
+const getPublicCollectionQuestions = asyncHandler(async (req, res) => {
+    const { collectionId } = req.params;
+
+    if (!isValidObjectId(collectionId)) {
+        throw new ApiError(400, "Invalid collection ID");
+    }
+
+    const collection = await Collection.findOne({
+        _id: collectionId,
+        visibility: "public",
+        isDeleted: false,
+    }).select("name description ownerId");
+
+    if (!collection) {
+        throw new ApiError(404, "Collection not found or private");
+    }
+
+    const questions = await CollectionQuestion.aggregate([
+        { $match: { collectionId: new mongoose.Types.ObjectId(collectionId) } },
+        { $sort: { order: 1, addedAt: -1 } },
+        {
+            $lookup: {
+                from: "questions",
+                localField: "questionId",
+                foreignField: "_id",
+                as: "question",
+            },
+        },
+        { $unwind: "$question" },
+        { $match: { "question.isDeleted": false } },
+        {
+            $project: {
+                _id: 0,
+                order: 1,
+                addedAt: 1,
+                question: {
+                title: 1,
+                difficulty: 1,
+                platform: 1,
+                problemUrlOriginal: 1,
+                },
+            },
+        },
+    ]);
+
+    return res.json(
+        new ApiResponse(200, "Public collection questions", {
+            collection,
+            questions,
+        })
+    );
+});
+
 
 export {
     createCollection,
@@ -214,5 +267,6 @@ export {
     getMyCollections,
     getCollectionById,
     updateCollection,
-    getCollectionQuestions
+    getCollectionQuestions,
+    getPublicCollectionQuestions
 }
