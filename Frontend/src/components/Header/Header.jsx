@@ -12,7 +12,7 @@ function Header() {
   const navRef = useRef(null);
 
 
-  const { isAuthenticated, isAuthReady } = useUserContext();
+  const { isAuthenticated, isAuthReady, user } = useUserContext();
   // if (!isAuthReady) return null;
   // const isAuthenticated = true
 
@@ -140,7 +140,7 @@ function Header() {
                 } to="user/dashboard">Dashboard
               </NavLink>
 
-              <ProfileDropdown user={{}} />
+              <ProfileDropdown user={user} />
             </>
           )}
         </nav>

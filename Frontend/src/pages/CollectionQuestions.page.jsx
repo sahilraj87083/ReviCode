@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import {AddQuestionPanel, QuestionRow , EmptyQuestionsState} from '../components'
-import { addQuestionToCollection, getCollectionAllQuestions, removeQuestionFromCollection } from "../services/collection.service";
+import { addQuestionToCollection, getCollectionAllQuestions, removeQuestionFromCollection , getPublicCollectionQuestionsService} from "../services/collection.service";
 import { useParams } from "react-router-dom";
 import { uploadQuestionService } from "../services/question.services";
 import toast from "react-hot-toast";
 
 
-function CollectionQuestions() {
+function CollectionQuestions({mode = 'owner'}) {
     const [openAddQuestionPanel, setOpenAddQuestionPanel] = useState(false);
     const {collectionId} = useParams()
     // console.log(collectionId)
@@ -15,10 +15,9 @@ function CollectionQuestions() {
     const [collection, setcollection] = useState({})
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchData = async () => {
+    const fetchDataPrivate = async () => {
       try {
         const response = await getCollectionAllQuestions(collectionId)
-
         setquestions(response.questions)
         setcollection(response.collection)
         setIsLoading(false)
@@ -27,9 +26,25 @@ function CollectionQuestions() {
         console.log(error)
       }
     }
+
+    const fetchDataPublic = async () => {
+      try {
+        const res = await getPublicCollectionQuestionsService(collectionId)
+        setquestions(res.questions)
+        setcollection(res.collection)
+        setIsLoading(false)
+      } catch (error) {
+        console.log(error)
+      }
+    }
     useEffect( () => {
-      fetchData()
-    }, [collectionId])
+      if(mode === 'owner'){
+        fetchDataPrivate()
+        
+      }else{
+        fetchDataPublic()
+      }
+    }, [collectionId, mode])
 
     const handleAddQuestion = async (formData) => {
     // console.log(formData);
@@ -64,7 +79,7 @@ function CollectionQuestions() {
         toast.error("Failed to remove question from collection")
         // console.log("Error while removing question from collection ", error)
       }
-      fetchData()
+      fetchDataPrivate()
     }
 
 
@@ -127,8 +142,8 @@ function CollectionQuestions() {
             />
           ) : (
             <div className="space-y-4">
-              {questions.map((q, index) => (
-                <QuestionRow key={q.question._id} q={q.question} index={index}  removeQuestion={handleRemoveQuestionFromCollection} />
+              {questions?.map((q, index) => (
+                <QuestionRow key={q.question?._id} q={q.question} index={index}  removeQuestion={handleRemoveQuestionFromCollection} mode = {mode} />
               ))}
             </div>
           )}

@@ -24,6 +24,11 @@ export const getCollectionById = async (collectionId) => {
   return res.data.data;
 };
 
+export const getPublicCollectionQuestionsService = async ( collectionId ) => {
+  const res = await api.get(`/collections/public/${collectionId}/questions`);
+  return res.data.data; 
+}
+
 
 export const getCollectionAllQuestions = async (collectionId) => {
   const res = await api.get(`/collections/${collectionId}/questions`);

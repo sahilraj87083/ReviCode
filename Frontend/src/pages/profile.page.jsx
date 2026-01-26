@@ -1,7 +1,11 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Button } from "../components";
+import { useParams } from "react-router-dom";
+import { getUserProfileService} from "../services/profile.services";
+import { useUserContext } from "../contexts/UserContext";
+import { ActivityTab,CollectionsTab, FollowersTab, Stat, Tab } from "../components/profilePageComponent";
 
 const TABS = {
   ACTIVITY: "activity",
@@ -13,11 +17,29 @@ function MyProfile() {
   const containerRef = useRef(null);
   const [activeTab, setActiveTab] = useState(TABS.ACTIVITY);
 
-  // ---- Mock data (replace with API later)
-  const loggedInUserId = "1";
-  const profileUserId = "1"; // change to same as loggedInUserId to test own profile
+  const { username } = useParams();
+
+  const { user: loggedInUser } = useUserContext();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getUserProfileService(username);
+        setProfile(data);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [username]);
+  
+
+
+  const loggedInUserId = loggedInUser._id;
+  const profileUserId = profile?._id; 
   const isOwnProfile = loggedInUserId === profileUserId;
-  const isUserLoggedIn = false
+  const isUserLoggedIn = !!loggedInUser
 
   useGSAP(
     () => {
@@ -38,20 +60,25 @@ function MyProfile() {
 
         {/* PROFILE HEADER */}
         <section className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-6 flex flex-col md:flex-row gap-6 items-center">
-          <img
-            src="/avatar.png"
-            alt="avatar"
-            className="w-28 h-28 rounded-full border-2 border-red-500 object-cover"
-          />
+          {profile?.avatar? (
+              <img
+                src={profile?.avatar}
+                alt="avatar"
+                className="w-28 h-28 rounded-full border-2 border-red-500 object-cover"
+              />
+            ) : (<div className="w-16 h-16 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-xl font-bold text-white">
+                <p className="capitalize">{profile?.fullName[0]}</p>
+              </div>)}
+          
 
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-2xl font-bold text-white">
-              Sahil Singh
+              {profile?.fullName}
             </h1>
-            <p className="text-slate-400">@sahil</p>
+            <p className="text-slate-400">@{profile?.username}</p>
 
             <p className="text-slate-300 mt-2 max-w-lg">
-              Competitive programmer · Backend Engineer
+              {profile?.bio}
             </p>
           </div>
 
@@ -65,8 +92,14 @@ function MyProfile() {
                     </>
                     ) : (
                     <>
-                        <Button variant="primary">Follow</Button>
-                        <Button variant="secondary">Message</Button>
+                        {!isOwnProfile && (
+                          profile?.isFollowedByViewer ? (
+                            <Button variant="secondary">Following</Button>
+                          ) : (
+                            <Button variant="primary">Follow</Button>
+                          )
+                        )}
+                        {profile?.isFollowedByViewer && <Button variant="secondary">Message</Button>}
                     </>
                     )) 
             }
@@ -75,10 +108,13 @@ function MyProfile() {
 
         {/* STATS */}
         <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Stat title="Contests Played" value="12" />
-          <Stat title="Problems Solved" value="340" />
-          <Stat title="Accuracy" value="72%" />
-          <Stat title="Avg Time / Q" value="3m 20s" />
+          <Stat title="Contests Played" value={profile?.stats?.totalContests || 0} />
+          <Stat title="Problems Solved" value={profile?.stats?.totalQuestionsSolved || 0} />
+          <Stat title="Accuracy" value={`${profile?.stats?.avgAccuracy?.toFixed(1) || 0}%`} />
+          <Stat
+            title="Avg Time / Q"
+            value={`${profile?.stats?.avgTimePerQuestion?.toFixed(1) || 0}s`}
+          />
         </section>
 
         {/* TABS */}
@@ -103,8 +139,11 @@ function MyProfile() {
 
           {/* TAB CONTENT */}
           <div className="p-6">
-            {activeTab === TABS.ACTIVITY && <ActivityTab />}
-            {activeTab === TABS.COLLECTIONS && <CollectionsTab />}
+            {activeTab === TABS.ACTIVITY && profile?._id && (
+                <ActivityTab userId={profile._id} />
+              )}
+
+            {activeTab === TABS.COLLECTIONS && <CollectionsTab  collections = {profile?.collections}/>}
             {activeTab === TABS.FOLLOWERS && <FollowersTab />}
           </div>
         </section>
@@ -114,70 +153,5 @@ function MyProfile() {
   );
 }
 
-/* ---------------- TAB CONTENT ---------------- */
-
-function ActivityTab() {
-  return (
-    <div className="space-y-4">
-      <ActivityRow title="DSA Sprint #12" score="420" rank="5 / 48" />
-      <ActivityRow title="Graphs Weekly" score="460" rank="2 / 34" />
-    </div>
-  );
-}
-
-function CollectionsTab() {
-  return (
-    <div className="text-slate-400">
-      Collections will appear here.
-    </div>
-  );
-}
-
-function FollowersTab() {
-  return (
-    <div className="text-slate-400">
-      Followers list will appear here.
-    </div>
-  );
-}
-
-/* ---------------- UI COMPONENTS ---------------- */
-
-function Stat({ title, value }) {
-  return (
-    <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-5">
-      <p className="text-slate-400 text-sm">{title}</p>
-      <p className="text-2xl font-bold text-white mt-1">{value}</p>
-    </div>
-  );
-}
-
-function Tab({ label, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-6 py-3 text-sm font-medium transition
-        ${
-          active
-            ? "text-white border-b-2 border-red-500"
-            : "text-slate-400 hover:text-white"
-        }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function ActivityRow({ title, score, rank }) {
-  return (
-    <div className="flex items-center justify-between bg-slate-800/40 rounded-lg p-4">
-      <div>
-        <p className="text-white font-medium">{title}</p>
-        <p className="text-slate-400 text-sm">Rank {rank}</p>
-      </div>
-      <span className="text-slate-200 font-semibold">{score}</span>
-    </div>
-  );
-}
 
 export default MyProfile;

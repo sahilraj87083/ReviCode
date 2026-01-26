@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import {Button} from '../'
 
 
-function CollectionCard({ collection, onCreateContest, onDelete }) {
+function CollectionCard({ collection, onCreateContest, mode = "owner", onDelete }) {
 
   const navigate = useNavigate();
   return (
@@ -12,13 +12,14 @@ function CollectionCard({ collection, onCreateContest, onDelete }) {
       transition flex flex-col justify-between"
     >
       {/* Delete Button */}
-      <Button
-        onClick={() => onDelete(collection._id)}
-        className="absolute top-3 right-3 text-slate-400 transition"
-        title="Delete collection"
-      >
-        <i className="ri-delete-bin-5-line text-lg hover:text-black"></i>
-      </Button>
+      {mode === 'owner' && 
+        <Button
+            onClick={() => onDelete(collection._id)}
+            className="absolute top-3 right-3 text-slate-400 transition"
+            title="Delete collection"
+          >
+            <i className="ri-delete-bin-5-line text-lg hover:text-black"></i>
+        </Button>}
 
       {/* Content */}
       <div>
@@ -44,30 +45,35 @@ function CollectionCard({ collection, onCreateContest, onDelete }) {
       <div className="mt-4 flex flex-col gap-3">
         <Button
           variant="secondary"
-          onClick={() => navigate(`/collections/${collection._id}/questions`)}
+          onClick={() => mode === 'owner' ?  navigate(`/user/collections/${collection._id}/questions`) : navigate(`/collections/${collection._id}`)}
           className="flex-1 text-center px-3 py-2 text-white
           border border-slate-700 rounded-md hover:text-slate-200
           text-sm hover:border-white transition"
         >
-          View
+        <p className= "text-white-500 mt-auto font-medium">
+          View →
+        </p>
         </Button>
 
+        {mode === 'owner' && 
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(`/user/questions?collectionId=${collection._id}`)}
+          >
+            Import Questions
+          </Button>
+        }
         
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate(`/user/questions?collectionId=${collection._id}`)}
-        >
-          Import Questions
-        </Button>
-        <Button
-          onClick={() => onCreateContest(collection)}
-          className="flex-1 px-3 py-2 text-white
-          bg-red-600 hover:bg-red-500
-          rounded-md text-sm font-semibold transition"
-        >
-          Create Contest
-        </Button>
+        {mode === 'owner' && 
+          <Button
+            onClick={() => onCreateContest(collection)}
+            className="flex-1 px-3 py-2 text-white
+            bg-red-600 hover:bg-red-500
+            rounded-md text-sm font-semibold transition"
+          >
+            Create Contest
+          </Button>}
 
       </div>
     </div>
