@@ -459,19 +459,9 @@ const getUserProfile = asyncHandler( async (req, res) => {
         {
             $lookup: {
                 from: "collections",
-                let: { userId: "$_id" },
-                pipeline: [
-                {
-                    $match: {
-                    $expr: {
-                        $and: [
-                        { $eq: ["$ownerId", "$$userId"] },
-                        { $eq: ["$visibility", "public"] }
-                        ]
-                    }
-                    }
-                }
-                ],
+                localField: "_id",
+                foreignField: "ownerId",
+                pipeline: [{ $match: { isPublic: true } }],
                 as: "collections"
             }
         },
