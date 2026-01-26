@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button, Input, AddQuestionPanel } from "../components";
-import {QuestionRow, AddToCollectionModal} from "../components";
+// import { Button, Input, AddQuestionPanel } from "../components";
+import {QuestionRow, AddToCollectionModal , EmptyQuestionsState, Button, Input, AddQuestionPanel} from "../components";
 import toast from "react-hot-toast";
 import {
     getAllQuestionsService,
@@ -23,6 +23,17 @@ function Questions() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
 
+    const [search, setSearch] = useState("");
+    const normalizedSearch = search.trim().toLowerCase();
+
+    const filteredQuestions = normalizedSearch ? questions.filter(
+        q => q.title?.toLowerCase().includes(normalizedSearch)
+    )
+        : questions;
+
+    
+    const hasActiveFilters = [...searchParams.entries()].length > 0;
+
     const collectionId = searchParams.get("collectionId"); // optional
 
     const fetchQuestions = async () => {
@@ -37,11 +48,19 @@ function Questions() {
     }, [searchParams.toString()]);
 
     const updateParams = (setSearchParams, searchParams, patch) => {
-        setSearchParams({
-            ...Object.fromEntries(searchParams),
-            ...patch,
-        });
+    const params = { ...Object.fromEntries(searchParams) };
+
+    Object.entries(patch).forEach(([key, value]) => {
+        if (value === "" || value === null || value === undefined) {
+        delete params[key];   // ✅ THIS IS THE FIX
+        } else {
+        params[key] = value;
+        }
+    });
+
+    setSearchParams(params);
     };
+
 
 
     const toggleSelect = (id) => {
@@ -136,15 +155,11 @@ function Questions() {
             <div className="flex flex-wrap gap-3 justify-center bg-slate-800/60 p-3 rounded-lg">
                 <Input
                     placeholder="Search questions..."
-                    value={searchParams.get("search") || ""}
-                    onChange={(e) =>
-                        updateParams(setSearchParams, searchParams, {
-                        search: e.target.value,
-                        page: 1,
-                        })
-                    }
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                     className="w-full md:w-72"
-                />
+                 />
+
                 <select
                 value={searchParams.get("difficulty") || ""}
                 onChange={(e) =>
@@ -215,36 +230,49 @@ function Questions() {
         {/* LIST */}
         {loading ? (
             <p className="text-slate-400">Loading...</p>
-        ) : (
-            <div className="space-y-3">
-            {questions.map((q, index) => (
-                <div
-                    key={q._id}
-                    className={`rounded-lg ${
+        ) : filteredQuestions.length === 0 ? 
+            (
+                hasActiveFilters ? (
+                    <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-12 text-center">
+                    <h3 className="text-xl font-semibold text-white">No results found</h3>
+                    <p className="text-slate-400 mt-2">
+                        Try changing filters or search terms
+                    </p>
+                    </div>
+                ) : (
+                    <EmptyQuestionsState onAdd={() => setOpenAddQuestionPanel(true)} />
+                )
+            ) : 
+            (
+                <div className="space-y-3">
+                    {filteredQuestions.map((q, index) => (
+                    <div
+                        key={q._id}
+                        className={`rounded-lg ${
                         selected.has(q._id) ? "ring-2 ring-red-500" : ""
-                    }`}
+                        }`}
                     >
-                    <div className="flex items-start gap-3 w-full">
+                        <div className="flex items-start gap-3 w-full">
                         <input
-                        type="checkbox"
-                        checked={selected.has(q._id)}
-                        onChange={() => toggleSelect(q._id)}
-                        className="mt-6 ml-3"
+                            type="checkbox"
+                            checked={selected.has(q._id)}
+                            onChange={() => toggleSelect(q._id)}
+                            className="mt-6 ml-3"
                         />
 
                         <div className="flex-1">
-                        <QuestionRow
+                            <QuestionRow
                             q={q}
                             index={index}
-                            removeQuestion={() => {deleteQuestionHandler(q._id)}}
-                        />
+                            removeQuestion={() => deleteQuestionHandler(q._id)}
+                            />
+                        </div>
                         </div>
                     </div>
-                    </div>
-
-            ))}
-            </div>
-        )}
+                    ))}
+                </div>
+            )
+        }
 
             {/* ADD PANEL */}
             {openAddQuestionPanel && (
