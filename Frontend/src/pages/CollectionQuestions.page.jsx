@@ -9,13 +9,12 @@ import { Input, } from "../components";
 function CollectionQuestions({mode = 'owner'}) {
     const [openAddQuestionPanel, setOpenAddQuestionPanel] = useState(false);
     const {collectionId} = useParams()
-    // console.log(collectionId)
+
 
     const [questions, setquestions] = useState([])
     const [collection, setcollection] = useState({})
     const [isLoading, setIsLoading] = useState(true);
 
-    const [selectedQuestions , setSelectedQuestions] = useState([])
     const [search, setSearch] = useState("");
 
     const normalizedSearch = search.toLowerCase();
@@ -99,55 +98,55 @@ function CollectionQuestions({mode = 'owner'}) {
         <div className="mb-12 flex flex-col gap-6">
 
         {/* Top row: title + action */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-                {collection.name}
-            </h1>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {collection.name}
+                </h1>
 
-            {collection.description && (
-                <p className="mt-2 text-slate-400 max-w-2xl">
-                {collection.description}
-                </p>
-            )}
-            </div>
+                {collection.description && (
+                    <p className="mt-2 text-slate-400 max-w-2xl">
+                    {collection.description}
+                    </p>
+                )}
+              </div>
 
-            {/* Action */}
-            <div className="flex gap-3 w-full sm:w-auto">
-              <Input
-                placeholder="Search collections..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:w-64"
-              />
-              <button
-              onClick={() => setOpenAddQuestionPanel(true)}
-              className="self-start px-5 py-2.5
-              bg-red-600 hover:bg-red-500
-              rounded-md text-sm font-semibold
-              transition"
+              {/* Action */}
+              <div className="flex gap-3 w-full sm:w-auto">
+                <Input
+                  placeholder="Search collections..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full sm:w-64"
+                />
+                <button
+                onClick={() => setOpenAddQuestionPanel(true)}
+                className="self-start px-5 py-2.5
+                bg-red-600 hover:bg-red-500
+                rounded-md text-sm font-semibold
+                transition"
+                >
+                + Add Question
+                </button>
+              </div>
+          </div>
+
+          {/* Meta row */}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+              <span className="px-3 py-1 rounded-full bg-slate-800">
+              {collection.questionsCount} Questions
+              </span>
+
+              <span
+              className={`px-3 py-1 rounded-full ${
+                  collection.isPublic
+                  ? "bg-green-500/10 text-green-400"
+                  : "bg-yellow-500/10 text-yellow-400"
+              }`}
               >
-              + Add Question
-              </button>
-            </div>
-        </div>
-
-        {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
-            <span className="px-3 py-1 rounded-full bg-slate-800">
-            {collection.questionsCount} Questions
-            </span>
-
-            <span
-            className={`px-3 py-1 rounded-full ${
-                collection.isPublic
-                ? "bg-green-500/10 text-green-400"
-                : "bg-yellow-500/10 text-yellow-400"
-            }`}
-            >
-            {collection.isPublic ? "Public" : "Private"}
-            </span>
-        </div>
+              {collection.isPublic ? "Public" : "Private"}
+              </span>
+          </div>
         </div>
 
 
@@ -171,7 +170,6 @@ function CollectionQuestions({mode = 'owner'}) {
             onClose={() => setOpenAddQuestionPanel(false)}
             onSubmit={handleAddQuestion}
         />}
-
 
       </div>
     </main>
