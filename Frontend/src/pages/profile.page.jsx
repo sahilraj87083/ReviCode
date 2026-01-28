@@ -38,7 +38,6 @@ function MyProfile() {
   }, [username]);
   
   const resendEmail = async () => {
-    console.log("clicked")
   try {
     await resendVerificationEmailService();
     toast.success("Verification email sent");

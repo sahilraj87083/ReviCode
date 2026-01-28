@@ -6,7 +6,6 @@ import {asyncHandler} from "../utils/AsyncHandler.utils.js";
 import { followUserService } from "../services/follow.services.js";
 
 const followUser = asyncHandler(async (req, res) => {
-    console.log("pahunch gya roger that")
     const {targetUserId} = req.params
     const currUser = req.user._id;
 
@@ -29,7 +28,6 @@ const followUser = asyncHandler(async (req, res) => {
 })
 
 const unfollowUser = asyncHandler(async (req, res) => {
-    console.log("roger unfollowed")
     const {targetUserId} = req.params
     const currUser = req.user._id;
 

@@ -40,7 +40,15 @@ const generateAccessAndRefereshTokensService = async (userId) => {
     }
 }
 
-const sendVerificationEmail = async (user) => {
+const sendVerificationEmail = async (userId) => {
+    const user = await User.findById(userId).select(
+        "+emailVerificationToken +emailVerificationExpiry +emailVerified"
+    );
+
+    if (!user) throw new ApiError(404, "User not found");
+
+    if (user.emailVerified) throw new ApiError(400, "Already verified");
+
     const token = crypto.randomBytes(32).toString("hex");
 
     user.emailVerificationToken = hashToken(token);

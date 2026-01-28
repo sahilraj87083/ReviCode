@@ -35,13 +35,13 @@ const registerUser = asyncHandler(async(req, res) => {
         username : username
     })
 
-    const createdUser = await User.findById(user._id).select('+emailVerificationToken +emailVerificationExpiry')
+    const createdUser = await User.findById(user._id)
 
     if(!createdUser){
         throw new ApiError(500, "Something went wrong while registering the user")
     }
 
-    sendVerificationEmail(createdUser)
+    sendVerificationEmail(createdUser._id)
     .catch((e) => {console.log("Error While Sending Verification mail", e)})
 
     return res.status(201).json(
@@ -559,12 +559,8 @@ const verifyEmail = asyncHandler(async (req, res) => {
 
 
 const resendVerificationEmail = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id);
-
-    if (!user) throw new ApiError(404, "User not found");
-    if (user.emailVerified) throw new ApiError(400, "Already verified");
-
-    await sendVerificationEmail(user);
+    
+    await sendVerificationEmail(req.user._id);
 
     res.json(new ApiResponse(200, "Verification email resent"));
 });
