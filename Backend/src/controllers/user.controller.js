@@ -245,6 +245,41 @@ const getCurrentUser = asyncHandler(async(req, res) => {
     ))
 })
 
+const updateUsername = asyncHandler(async (req, res) => {
+    const { newUsername } = req.body;
+
+    const normalized = newUsername.toLowerCase().trim();
+
+    // same username → no-op
+    if (normalized === req.user.username) {
+        return res.json(
+            new ApiResponse(200, "Username unchanged", req.user)
+            );
+    }
+
+    // check if taken
+    const exists = await User.exists({ username: normalized });
+
+    if (exists) {
+        throw new ApiError(409, "Username already taken");
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { username: normalized },
+        { new: true, runValidators: true }
+    ).select("-password -refreshToken");
+
+    if (!updatedUser) {
+        throw new ApiError(500, "Failed to update username");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, "Username updated successfully", updatedUser)
+    );
+});
+
+
 const updateAccountDetails = asyncHandler(async(req, res) => {
     const {fullName, bio} = req.body
 
@@ -620,6 +655,7 @@ export {
     refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
+    updateUsername,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,

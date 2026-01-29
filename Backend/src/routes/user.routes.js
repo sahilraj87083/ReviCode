@@ -5,6 +5,7 @@ import {
     refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
+    updateUsername,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
@@ -81,6 +82,22 @@ router.post(
 );
 
 router.get("/current-user", verifyJWT, getCurrentUser);
+
+router.patch(
+    "/update-username",
+    verifyJWT,
+    [
+        body("newUsername")
+        .trim()
+        .toLowerCase()
+        .isLength({ min: 3, max: 30 })
+        .withMessage("Username must be 3-30 characters long")
+        .matches(/^[a-z0-9._]+$/)
+        .withMessage("Username can contain only letters, numbers, . and _")
+    ],
+    validate,
+    updateUsername
+);
 
 router.patch(
     "/update-account",
