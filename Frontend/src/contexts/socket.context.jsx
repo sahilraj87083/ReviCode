@@ -15,12 +15,14 @@ export const SocketContextProvider = ({ children }) => {
     const socketRef = useRef(null);
 
     if (!socketRef.current) {
-        socketRef.current = io({
-            path: "/socket.io",
-            transports: ["websocket"],
-            withCredentials: true,
-            autoConnect: true,
-        });
+        socketRef.current = io(
+            import.meta.env.VITE_API_URL,
+            {
+                transports: ["websocket"],
+                withCredentials: true,
+            }
+        );
+
     }
 
     useEffect(() => {

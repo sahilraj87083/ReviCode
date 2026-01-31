@@ -25,6 +25,13 @@ const contestMessageSchema = new mongoose.Schema(
             enum: ["text", "system"],
             default: "text",
         },
+        
+        phase: {
+            type: String,
+            enum: ["lobby", "live", "ended"],
+            default: "lobby",
+            index: true,
+        },
     },
     { timestamps: true }
 );

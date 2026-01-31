@@ -86,10 +86,10 @@ function GroupContestLobby() {
   useEffect(() => {
       if (!socket) return;
 
-      socket.emit("join-contest-lobby", { contestId });
+      socket.emit("contest:lobby:join", { contestId });
 
       return () => {
-        socket.emit("leave-contest-lobby", { contestId });
+        socket.emit("contest:lobby:leave", { contestId });
       };
   }, [contestId, socket]);
 

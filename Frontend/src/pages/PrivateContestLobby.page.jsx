@@ -17,7 +17,6 @@ function PrivateContestLobby() {
   const fetchContest = async () => {
     try {
         const contest = await getContestByIdService(contestId);
-        console.log(contest)
         setContest(contest);
         
         if(contest.status === 'live'){

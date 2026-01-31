@@ -10,7 +10,7 @@ import { ContestParticipant } from '../models/contestParticipant.model.js'
 import { createContestService, paginate} from '../services/contest.services.js'
 import { createContestParticipantService } from "../services/contestParticipant.services.js";
 
-import { io } from '../socket.js';
+import { io } from '../sockets/index.js';
 
 // TODO: wrap createContest in mongoose session when more side effects added
 const createContest = asyncHandler(async (req, res) => {

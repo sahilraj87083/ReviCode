@@ -3,7 +3,7 @@ dotenv.config({
     path : './.env'
 })
 import http from "http";
-import { initializeSocket } from "./socket.js";
+import { initializeSocket } from "./sockets/index.js";
 
 import connectDB from './db/connectDB.js';
 import { app } from "./app.js";

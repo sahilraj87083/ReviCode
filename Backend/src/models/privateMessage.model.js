@@ -24,8 +24,22 @@ const privateMessageSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+
+        status: {
+            type: String,
+            enum: ["sent", "delivered", "read"],
+            default: "sent"
+        },
+
+        deletedFor: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ]
     },
     { timestamps: true }
 );
+privateMessageSchema.index({ conversationId: 1, createdAt: -1 });
 
 export const PrivateMessage = mongoose.model("PrivateMessage", privateMessageSchema);

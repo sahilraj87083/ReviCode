@@ -25,6 +25,7 @@ const getPrivateMessages = asyncHandler(async (req, res) => {
     if (!exists) throw new ApiError(403, "Not authorized");
 
     const message = await getConversationMessagesService({
+        userId : req.user._id,
         room,
         limit,
         skip
@@ -41,7 +42,7 @@ const clearPrivateConversation = asyncHandler (async (req, res) => {
 
     const room = getPrivateRoom(req.user._id, userId)
 
-    await clearConversationService(room);
+    await clearConversationService(room, req.user._id);
 
     return res.status(200).json( new ApiResponse(200, "Chat cleared successfully", {}))
 })
