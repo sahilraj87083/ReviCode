@@ -13,7 +13,7 @@ export const socketAuthMiddleware = (socket, next) => {
         }
 
         if (!token) {
-            return next(new Error("Unauthorized socket"));
+            return next(new ApiError("Unauthorized socket"));
         }
 
         const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
