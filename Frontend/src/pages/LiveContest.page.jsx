@@ -79,6 +79,11 @@ function LiveContest() {
           toast.error('Contest Already Submitted')
           navigate('/user/dashboard')
         }
+        if(contest.status === 'upcoming'){
+          const mode = contest.visibility === "shared" ? 'public' : 'private';
+          toast.error('contest has not started yet')
+          navigate(`/user/contests/${mode}/${contestId}`)
+        }
         setContest(contest);
         setContestQuestions(contest.questions);
       } catch (error) {
