@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect} from "react";
-import { Button, Input, PublicMetaCards } from "../components";
+import { Button, PublicMetaCards } from "../components";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -8,6 +8,9 @@ import { getAllParticipantsService, leaveContestService } from "../services/cont
 import { useUserContext } from "../contexts/UserContext";
 import { useSocketContext } from "../contexts/socket.context";
 import toast from 'react-hot-toast'
+import { useContestChat } from "../hooks/useContestChat";
+import MessagesArea from '../components/messageComponents/MessagesArea'
+import MessageInput from '../components/messageComponents/MessageInput'
 
 function GroupContestLobby() {
   const containerRef = useRef(null);
@@ -28,15 +31,21 @@ function GroupContestLobby() {
 
   const { contestId } = useParams()
 
+  const { messages , send } = useContestChat({
+      contestId,
+      phase: "lobby",
+  });
+
 
   const fetchContest = async () => {
     try {
       const contest = await getContestByIdService(contestId);
       setContest(contest);
       setContestQuestions(contest.questions);
-      if(contest.status === 'live'){
-        navigate(`/contests/${contestId}/live`);
-      }
+
+      if(contest.status === 'live')  navigate(`/contests/${contestId}/live`);
+      if(contest?.status === 'ended') navigate('/user/contests')
+
     } catch (error) {
       toast.error("Contest not found")
       navigate('/user/contests')
@@ -45,15 +54,7 @@ function GroupContestLobby() {
 
   // Fetch contest once
   useEffect(()=>{
-      (async () => {
-        await fetchContest();
-        if(contest?.status === 'ended'){
-          navigate('/user/contests')
-        }
-        if(contest?.status === "live"){
-          navigate(`/contests/${contestId}/live`);
-        }
-      })()
+      fetchContest();
   }, [contestId])
 
 
@@ -73,15 +74,6 @@ function GroupContestLobby() {
       return () => clearInterval(interval); // cleanup
   }, [contestId])
 
-  // useEffect(() => {
-  //   if (!socket) return;
-
-  //   socket.emit("join-contest", { contestId });
-
-  //   return () => {
-  //     socket.emit("leave-contest", { contestId });
-  //   };
-  // }, [socket, contestId]);
 
   useEffect(() => {
       if (!socket) return;
@@ -93,14 +85,22 @@ function GroupContestLobby() {
       };
   }, [contestId, socket]);
 
+
   const leaveContest = async () => {
       await leaveContestService(contest._id);
-      socket.emit("leave-contest", { contestId: contest._id });
+      socket.emit("contest:lobby:leave", { contestId: contest._id });
+
       navigate("/user/contests");
   }
 
   const startContestHandler = async () => {
       await startContestService(contest._id)
+
+      socket.emit("contest:system", {
+          contestId,
+          message: "Contest started",
+          phase: "lobby",
+      });
   }
 
   useEffect(() => {
@@ -110,10 +110,10 @@ function GroupContestLobby() {
       navigate(`/contests/${contestId}/live`);
     };
 
-    socket.on("contest-started", handleStart);
+    socket.on("contest:started", handleStart);
 
     return () => {
-      socket.off("contest-started", handleStart);
+      socket.off("contest:started", handleStart);
     };
   }, [socket, navigate]);
 
@@ -136,7 +136,7 @@ function GroupContestLobby() {
         {/* ---------------- TOP BAR ---------------- */}
         <section className="flex items-center justify-between bg-slate-900/60 border border-slate-700/50 rounded-xl p-4">
           <div>
-            <h1 className="text-xl font-semibold text-white">
+            <h1 className="text-xl font-semibold text-white capitalize">
               {contest?.title}
             </h1>
             <p className="text-sm text-slate-400">
@@ -165,23 +165,29 @@ function GroupContestLobby() {
         </section>
 
 
-        {/* ---------------- SYSTEM MESSAGE ---------------- */}
+        {/* ---------------- HOST CONTROLS  ---------------- */}
         <section className="bg-slate-800/60 border text-center border-slate-700 rounded-lg p-4 text-sm text-slate-300">
-          {contest?.status === "upcoming" && (
-            <>
-              Waiting for host to start the contest. You can chat freely before
-              the contest begins.
-            </>
-          )}
-          {contest?.status === "live" && (
-            <>
+          {isHost ? contest?.status === "upcoming" && (
+              <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  Host Controls
+                </h3>
+
+                <Button variant="primary"
+                onClick = {startContestHandler}
+                >
+                  Start Contest
+                </Button>
+              </div>
+            ) : contest?.status === "upcoming" ? <>
+              Waiting for host to start the contest.  Once started, no new users can join.
+            </> : <>
               Contest is live. Joining is disabled.
-            </>
-          )}
+            </>}
         </section>
 
         {/* ---------------- MAIN GRID ---------------- */}
-        <section className="grid md:grid-cols-3 gap-6">
+        <section className="grid md:grid-cols-3 gap-3">
 
           {/* PARTICIPANTS */}
           <div className="md:col-span-2 bg-slate-900/60 border border-slate-700/50 rounded-xl p-6">
@@ -191,8 +197,9 @@ function GroupContestLobby() {
 
             <div className="space-y-3">
               {participants?.map((p) => {
-                const isHostUser = p.user._id === contest?.owner?._id;
-
+                const isUserItself = p.user._id === user?._id;
+                const isUserHost = p.user._id === contest?.owner?._id;
+ 
                 return (
                   (
                     <div
@@ -201,7 +208,7 @@ function GroupContestLobby() {
                     >
                       <span className="text-white">
                         {p.user.fullName}
-                        {isHostUser && (
+                        {isUserHost && (
                           <span className="ml-2 text-xs text-red-400">(Host)</span>
                         )}
                       </span>
@@ -210,7 +217,7 @@ function GroupContestLobby() {
                         <span className="text-xs text-slate-400 mr-3">
                           {p.joinedAt ? "Ready" : "Joined"}
                         </span>
-                        {!isHost && !isHostUser && (
+                        {!isHost && isUserItself && (
                           <Button variant="danger" onClick={leaveContest}>
                             <i className="ri-logout-box-r-line"></i>
                           </Button>
@@ -227,54 +234,29 @@ function GroupContestLobby() {
           {/* RIGHT PANEL */}
           <div className="space-y-6">
 
-            {/* HOST CONTROLS */}
-            {isHost && contest?.status === "upcoming" && (
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-3">
-                  Host Controls
-                </h3>
-
-                <Button variant="primary" className="w-full"
-                onClick = {startContestHandler}
-                >
-                  Start Contest
-                </Button>
-
-                <p className="text-xs text-slate-400 mt-3">
-                  Once started, no new users can join.
-                </p>
-              </div>
-            )}
-
             {/* CHAT */}
-            <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-6 flex flex-col h-64">
+            <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 flex flex-col h-[550px]">
               <h3 className="text-lg font-semibold text-white mb-2">
                 Chat
               </h3>
-
-              <div className="flex-1 text-slate-400 text-sm flex items-center justify-center">
-                {chatEnabled
-                  ? "Chat messages appear here"
-                  : "Chat disabled during contest"}
-              </div>
+              <MessagesArea
+                messages={messages} currentUserId={user._id}
+              />
+              {messages
+                .filter(m => m.messageType === "system")
+                .map(m => (
+                  <div
+                    key={m._id}
+                    className="text-center text-xs text-slate-400 py-1"
+                  >
+                    {m.message}
+                  </div>
+                ))}
 
               {chatEnabled && (
-                <div className="px-3 py-3 border-t border-slate-700 bg-slate-900">
-                    <div className="flex items-center gap-2">
-                        <input
-                        placeholder="Type a message..."
-                        className="flex-1 px-3 py-2 rounded-md bg-slate-800 border border-slate-700
-                                    focus:outline-none focus:ring-2 focus:ring-red-500"
-                        />
-
-                        <button
-                        className="p-2 rounded-md bg-red-600 hover:bg-red-500 transition
-                                    flex items-center justify-center"
-                        >
-                        <i className="ri-send-plane-2-fill text-white text-lg" />
-                        </button>
-                    </div>
-                </div>
+                <MessageInput
+                  onSend={(msg) => send(msg)}
+                />
               )}
             </div>
 

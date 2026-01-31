@@ -10,18 +10,22 @@ export const ContestSocket = (io, socket) => {
     =============================== */
 
     socket.on("contest:lobby:join", ({ contestId }) => {
+        console.log(`${socket.userId} joined the lobby`)
         socket.join(`contest:${contestId}:lobby`);
     });
 
     socket.on("contest:lobby:leave", ({ contestId }) => {
+        console.log(`${socket.userId} left the lobby`)
         socket.leave(`contest:${contestId}:lobby`);
     });
 
     socket.on("contest:live:join", ({ contestId }) => {
+        console.log(`${socket.userId} joined the live`)
         socket.join(`contest:${contestId}:live`);
     });
 
     socket.on("contest:live:leave", ({ contestId }) => {
+        console.log(`${socket.userId} left the live`)
         socket.leave(`contest:${contestId}:live`);
     });
 
@@ -31,10 +35,12 @@ export const ContestSocket = (io, socket) => {
     =============================== */
 
     socket.on("contest:chat:join", ({ contestId }) => {
+        console.log(`${socket.userId} joined the chat`)
         socket.join(`contest:${contestId}:chat`);
     });
 
     socket.on("contest:chat:leave", ({ contestId }) => {
+        console.log(`${socket.userId} left the chat`)
         socket.leave(`contest:${contestId}:chat`);
     });
 

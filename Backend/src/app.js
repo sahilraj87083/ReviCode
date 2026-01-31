@@ -40,6 +40,7 @@ import contestRoutes from './routes/contest.routes.js'
 import contestParticipantRoutes from './routes/contestParticipant.routes.js'
 import userStatsRouter from './routes/userStats.routes.js'
 import followRoutes from './routes/follow.routes.js'
+import contestMessageRoutes from './routes/contestMessage.routes.js' 
 
 
 
@@ -55,6 +56,7 @@ app.use('/api/v1/collections', collectioQuestionRouter)
 
 app.use('/api/v1/contests', contestRoutes)
 app.use('/api/v1/contest-participants', contestParticipantRoutes)
+app.use('/api/v1/contest/chat', contestMessageRoutes)
 
 
 app.use('/api/v1/stats', userStatsRouter)
