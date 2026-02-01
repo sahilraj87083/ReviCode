@@ -7,15 +7,24 @@ import { useParams , useNavigate} from "react-router-dom";
 import { getContestByIdService } from "../services/contest.services";
 import { enterLiveContestService , submitContestService} from "../services/contestParticipant.service";
 import toast from "react-hot-toast";
+import { useContestChat } from "../hooks/useContestChat";
+import MessagesArea from '../components/messageComponents/MessagesArea'
+import MessageInput from '../components/messageComponents/MessageInput'
+import { useUserContext } from "../contexts/UserContext";
+
 
 
 function LiveContest() {
   const containerRef = useRef(null);
   const enteredRef = useRef(false);
+  const joinedRef = useRef(false);
+  const hydratedRef = useRef(false);
+
   const {contestId} = useParams()
 
   const navigate = useNavigate()
   const { socket } = useSocketContext()
+  const { user } = useUserContext()
 
   const [contest, setContest] = useState()
   const [contestQuestions, setContestQuestions] = useState()
@@ -23,6 +32,8 @@ function LiveContest() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [endsAt, setEndsAt] = useState(null);
   const [startedAt, setStartedAt] = useState(null)
+
+  const {messages , send} = useContestChat({contestId, phase : 'live'})
 
 
   // contest state
@@ -52,7 +63,6 @@ function LiveContest() {
         timeSpent: timeSpent,
       }
     }));
-    console.log(attempts)
   };
 
   const submitContest = async (e) => {
@@ -65,6 +75,7 @@ function LiveContest() {
       await submitContestService(contestId, payload);
       toast.success("Contest Submitted")
       navigate('/user/dashboard')
+      localStorage.removeItem(`contest:${contestId}:attempts`);
     } catch (error) {
       toast.error("Try again")
     }
@@ -93,22 +104,44 @@ function LiveContest() {
   };
 
   // Fetch contest once
-  useEffect( ()=>{
-      (
-        async () => {
-          await fetchContest();
-        }
-      )()
+  useEffect(()=>{
+      fetchContest();
   }, [contestId])
 
   // socket event
   useEffect(() => {
-    socket.emit("join-contest-live", { contestId });
+    if(!socket || !contestId) return;
+    if (joinedRef.current) return;
+
+    joinedRef.current = true;
+    socket.emit("contest:live:join", { contestId });
 
     return () => {
-      socket.emit("leave-contest-live", { contestId });
+      socket.emit("contest:live:leave", { contestId });
     };
   }, [contestId]);
+
+  // mount attempts from local storage on refresh
+  useEffect(() => {
+    const cached = localStorage.getItem(`contest:${contestId}:attempts`)
+    
+    if (cached) {
+      setAttempts(JSON.parse(cached));
+    }
+  }, [contestId])
+
+  // local storage backup for attempts
+  useEffect( () => {
+    if (!hydratedRef.current) {
+      hydratedRef.current = true;
+      return;
+  }
+  localStorage.setItem(
+      `contest:${contestId}:attempts`,
+      JSON.stringify(attempts)
+  )
+  }, [contestId, attempts])
+
 
   
   // logs user into contest : timer starts
@@ -134,7 +167,7 @@ function LiveContest() {
         navigate('/user/contests')
       }
     })();
-  }, [contest?.status, contestId]);
+  }, [contest?.status]);
 
   
   // timer logic
@@ -158,6 +191,7 @@ function LiveContest() {
     if (timeLeft === 0 && contest?.status === "live") {
       submitContestService(contestId, { attempts: Object.values(attempts) })
       .finally(() => {
+        localStorage.removeItem(`contest:${contestId}:attempts`);
         toast.success("Contest auto-submitted");
         navigate("/user/dashboard");
       });
@@ -289,39 +323,21 @@ function LiveContest() {
           isGroupContest && (
             <aside className="w-80 border-l border-slate-700 flex flex-col h-full">
 
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-slate-700 font-medium">
-            Chat
-        </div>
+                {/* Header */}
+                <div className="px-4 py-3 border-b border-slate-700 font-medium">
+                    Chat
+                </div>
 
-        {/* Messages (scrollable, constrained) */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 text-sm text-slate-400">
-            {chatEnabled
-            ? "Chat messages will appear here"
-            : "Chat is disabled during contest"}
-        </div>
+                {/* Messages (scrollable, constrained) */}
+                <MessagesArea
+                        messages={messages} currentUserId={user._id}
+                      />
 
-        {/* Input Area (ALWAYS visible, never below screen) */}
-        {chatEnabled && (
-            <div className="px-3 py-3 border-t border-slate-700 bg-slate-900">
-                
-            <div className="flex items-center gap-2">
-                <input
-                placeholder="Type a message..."
-                className="flex-1 px-3 py-2 rounded-md bg-slate-800 border border-slate-700
-                            focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-
-                <Button
-                className="p-2 rounded-md bg-red-600 hover:bg-red-500 transition
-                            flex items-center justify-center"
-                >
-                <i className="ri-send-ins-fill"></i>
-                </Button>
-            </div>
-            </div>
-        )}
-        </aside>
+                {/* Input Area */}
+                {chatEnabled && (
+                  <MessageInput onSend={(msg) => send(msg)}/>
+                )}
+            </aside>
           )
         }
 
