@@ -41,13 +41,14 @@ import contestParticipantRoutes from './routes/contestParticipant.routes.js'
 import userStatsRouter from './routes/userStats.routes.js'
 import followRoutes from './routes/follow.routes.js'
 import contestMessageRoutes from './routes/contestMessage.routes.js' 
+import userPrivateMessageRouter from './routes/privateMessage.routes.js'
 
 
 
 //  use routes
 app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use('/api/v1/users', userRouter)
-
+app.use('/api/v1/users/chat', userPrivateMessageRouter)
 
 app.use('/api/v1/questions', questionRouter)
 app.use('/api/v1/collections', collectionRouter)

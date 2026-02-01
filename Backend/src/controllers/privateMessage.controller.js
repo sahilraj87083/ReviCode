@@ -4,7 +4,133 @@ import { getConversationMessagesService, clearConversationService} from '../serv
 import { getPrivateRoom } from '../utils/getPrivateRoom.js'
 import { ApiResponse } from '../utils/ApiResponse.utils.js'
 import { PrivateMessage } from '../models/privateMessage.model.js'
+import { Follow } from '../models/follow.model.js'
+import { User } from '../models/user.model.js'
+import mongoose from 'mongoose'
 
+
+const getInbox = asyncHandler(async (req, res) => {
+    console.log("reaching backend")
+    const userId = new mongoose.Types.ObjectId(req.user?._id);
+
+    const conversations = await PrivateMessage.aggregate([
+        {
+            $match : {
+                deletedFor : { $ne : userId},
+                $or : [
+                    { senderId : userId},
+                    { receiverId : userId}
+                ]
+            }
+        },
+        { $sort: { createdAt: -1 } },
+        {
+            $group : {
+                _id : '$conversationId',
+                lastMessage : { 
+                    $first : '$message'
+                },
+                lastAt : { 
+                    $first : "$createdAt"
+                },
+                senderId : {
+                    $first : '$senderId'
+                },
+                receiverId : {
+                    $first : '$receiverId'
+                }
+            }
+        },
+        {
+            $addFields : {
+                otherUserId : {
+                    $cond : [
+                        { $eq : ["$senderId", userId]},
+                        "$receiverId",
+                        "$senderId",
+                    ]
+                }
+            }
+        },
+        {
+            $lookup : {
+                from : "users",
+                localField: "otherUserId",
+                foreignField : '_id',
+                as : "user"
+            }
+        },
+        { $unwind: "$user" },
+        {
+            $project : {
+                conversationId: "$_id",
+                lastMessage: 1,
+                lastAt: 1,
+                user : {
+                    _id: "$user._id",
+                    fullName: "$user.fullName",
+                    avatar: "$user.avatar"
+                }
+            }
+        },
+        { $sort : { lastAt : -1}}
+    ])
+
+    const existingUserIds = conversations.map(c => c.user._id.toString());
+
+    const followDocs = await Follow.find({
+        $or: [
+            { followerId: userId },
+            { followingId: userId }
+        ]
+    }).lean();
+
+    const relatedUserIds = new Set();
+
+    followDocs.forEach( f => {
+        if (f.followerId.toString() !== userId.toString())
+            relatedUserIds.add(f.followerId.toString());
+
+        if (f.followingId.toString() !== userId.toString())
+            relatedUserIds.add(f.followingId.toString());
+    });
+
+    const newChatUserIds = [...relatedUserIds].filter(
+        id => !existingUserIds.includes(id)
+    );
+
+    const newUsers = await User.find(
+        { _id: { $in: newChatUserIds } },
+        { fullName: 1, avatar: 1 }
+    ).lean();
+
+    const inbox = [
+        ...conversations.map(c => ({
+            conversationId: c.conversationId,
+            lastMessage: c.lastMessage,
+            lastAt: c.lastAt,
+            user: c.user,
+            isNew: false
+        })),
+
+        ...newUsers.map(u => ({
+            conversationId: null,
+            lastMessage: "start conversation",
+            lastAt: null,
+            user: u,
+            isNew: true
+        }))
+    ];
+
+    inbox.sort((a, b) => {
+        if (!a.lastAt && !b.lastAt) return 0;
+        if (!a.lastAt) return 1;
+        if (!b.lastAt) return -1;
+        return new Date(b.lastAt) - new Date(a.lastAt);
+    });
+
+    return res.status(200).json(new ApiResponse(200, "Inbox fetched", inbox));
+})
 
 const getPrivateMessages = asyncHandler(async (req, res) => {
     const { userId } = req.params
@@ -48,6 +174,7 @@ const clearPrivateConversation = asyncHandler (async (req, res) => {
 })
 
 export {
+    getInbox,
     getPrivateMessages,
     clearPrivateConversation
 }
