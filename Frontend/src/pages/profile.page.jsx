@@ -9,6 +9,7 @@ import { ActivityTab,CollectionsTab, FollowersTab, Stat, Tab } from "../componen
 import { FollowButton , ProfileActions } from '../components'
 import { resendVerificationEmailService  } from "../services/auth.services";
 import toast from "react-hot-toast";
+import { useFollow } from "../hooks/useFollow";
 
 const TABS = {
   ACTIVITY: "activity",
@@ -24,7 +25,13 @@ function MyProfile() {
 
   const { user: loggedInUser } = useUserContext();
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const loggedInUserId = loggedInUser?._id;
+  const profileUserId = profile?._id; 
+  const isOwnProfile = loggedInUserId === profileUserId;
+  const isUserLoggedIn = !!loggedInUser
+
+  const { isFollowedBy, isFollowing, follow, unfollow, loading} = useFollow(profileUserId)
 
   useEffect(() => {
     (async () => {
@@ -32,7 +39,7 @@ function MyProfile() {
         const data = await getUserProfileService(username);
         setProfile(data);
       } finally {
-        setLoading(false);
+        setLoadingProfile(false);
       }
     })();
   }, [username]);
@@ -45,13 +52,7 @@ function MyProfile() {
     toast.error(err.response?.data?.message || "Failed to send email");
   }
 };
-
-
-
-  const loggedInUserId = loggedInUser?._id;
-  const profileUserId = profile?._id; 
-  const isOwnProfile = loggedInUserId === profileUserId;
-  const isUserLoggedIn = !!loggedInUser
+ 
 
   useGSAP(
     () => {
@@ -117,9 +118,13 @@ function MyProfile() {
             </div>
           )} */}
           <ProfileActions
+            unfollow={unfollow}
+            follow={follow}
+            loading={loading}
             isOwnProfile={isOwnProfile}
             isUserLoggedIn={isUserLoggedIn}
-            profileUserId={profileUserId}
+            isFollowedBy = {isFollowedBy}
+            isFollowing = {isFollowing}
           />
 
 

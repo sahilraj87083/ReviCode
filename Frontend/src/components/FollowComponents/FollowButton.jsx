@@ -1,8 +1,6 @@
 import { Button } from "../";
-import { useFollow } from "../../hooks/useFollow";
 
-function FollowButton({ userId }) {
-  const { isFollowing, follow, unfollow, loading } = useFollow(userId);
+function FollowButton({ isFollowing, follow, unfollow, loading}) {
 
   return (
     <Button

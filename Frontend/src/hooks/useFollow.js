@@ -4,6 +4,7 @@ import {
     unfollowUserService,
     getFollowStatusService,
 } from "../services/follow.services";
+import { useUserContext } from "../contexts/UserContext";
 
 export const useFollow = (targetUserId) => {
     const [loading, setLoading] = useState(false);
@@ -12,13 +13,16 @@ export const useFollow = (targetUserId) => {
         isFollowedBy: false,
     });
 
+    const { user } = useUserContext()
+
+
     const fetchStatus = async () => {
         const res = await getFollowStatusService(targetUserId);
         setStatus(res.data.data);
     };
 
     useEffect(() => {
-        if (!targetUserId) return;
+        if (!targetUserId || user?._id == targetUserId) return;
         fetchStatus();
     }, [targetUserId]);
 

@@ -1,8 +1,9 @@
 import { Button, FollowButton} from "../";
 import { useNavigate } from "react-router-dom";
 
-function ProfileActions({ isOwnProfile, isUserLoggedIn, profileUserId }) {
+function ProfileActions({ isOwnProfile, follow, loading, unfollow, isUserLoggedIn, isFollowedBy , isFollowing  }) {
   if (!isUserLoggedIn) return null;
+
   const navigate = useNavigate()
 
   if (isOwnProfile) {
@@ -16,8 +17,13 @@ function ProfileActions({ isOwnProfile, isUserLoggedIn, profileUserId }) {
 
   return (
     <>
-      <FollowButton userId={profileUserId} />
-      <Button variant="secondary">Message</Button>
+      <FollowButton  
+      isFollowing={isFollowing}
+      follow={follow}
+      unfollow={unfollow}
+      loading={loading}
+      />
+      {isFollowedBy && isFollowing && (<Button variant="secondary">Message</Button>)}
     </>
   );
 }
