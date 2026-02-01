@@ -1,21 +1,12 @@
 import { useRef, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { Input, ChatSidebar , ChatWindow} from "../components";
+import { ChatSidebar , ChatWindow} from "../components";
+import { useInbox } from '../hooks/useInbox.js'
 
 function Messages() {
   const containerRef = useRef(null);
   const [activeChat, setActiveChat] = useState();
+  const { inbox } = useInbox()
 
-  useGSAP(() => {
-    gsap.from(".chat-animate", {
-      opacity: 0,
-      y: 20,
-      stagger: 0.1,
-      duration: 0.4,
-      ease: "power2.out",
-    });
-  }, []);
 
   return (
     <div
@@ -23,6 +14,7 @@ function Messages() {
       className="h-[calc(100vh-80px)] bg-slate-900 flex"
     >
       <ChatSidebar
+        inbox = {inbox}
         activeChat={activeChat}
         onSelect={setActiveChat}
       />
