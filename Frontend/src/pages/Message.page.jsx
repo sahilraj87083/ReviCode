@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import { ChatSidebar , ChatWindow} from "../components";
 import { useInbox } from '../hooks/useInbox.js'
+import { usePrivateChat } from "../hooks/usePrivateChat.js";
 
 function Messages() {
   const containerRef = useRef(null);
   const [activeChat, setActiveChat] = useState();
   const { inbox } = useInbox()
+  const { messages, send, loadMore, hasMore } = usePrivateChat({ otherUserId : activeChat?.user?._id})
 
 
   return (
@@ -19,7 +21,7 @@ function Messages() {
         onSelect={setActiveChat}
       />
 
-      <ChatWindow activeChat={activeChat} />
+      <ChatWindow activeChat={activeChat} messages = {messages} send = {send} />
     </div>
   );
 }

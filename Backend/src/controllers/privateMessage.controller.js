@@ -3,6 +3,7 @@ import { paginate } from '../utils/pagination.utils.js'
 import { getConversationMessagesService, clearConversationService} from '../services/privateMessage.service.js'
 import { getPrivateRoom } from '../utils/getPrivateRoom.js'
 import { ApiResponse } from '../utils/ApiResponse.utils.js'
+import { ApiError } from '../utils/ApiError.utils.js'
 import { PrivateMessage } from '../models/privateMessage.model.js'
 import { Follow } from '../models/follow.model.js'
 import { User } from '../models/user.model.js'
@@ -10,7 +11,6 @@ import mongoose from 'mongoose'
 
 
 const getInbox = asyncHandler(async (req, res) => {
-    console.log("reaching backend")
     const userId = new mongoose.Types.ObjectId(req.user?._id);
 
     const conversations = await PrivateMessage.aggregate([
@@ -133,22 +133,23 @@ const getInbox = asyncHandler(async (req, res) => {
 })
 
 const getPrivateMessages = asyncHandler(async (req, res) => {
-    const { userId } = req.params
+    const { otherUserId } = req.params
     const {p , l} = req.query
 
     const {skip , page , limit} = paginate({p , l});
 
-    const room = getPrivateRoom(req.user._id, userId);
+    const room = getPrivateRoom(req.user._id, otherUserId);
 
-    const exists = await PrivateMessage.exists({
-        conversationId: room,
-        $or: [
-            { senderId: req.user._id },
-            { receiverId: req.user._id }
+    const isAllowed = await Follow.exists({
+        $or : [
+            { followerId: req.user._id, followingId: otherUserId },
+            { followerId: otherUserId, followingId: req.user._id }
         ]
-     });
-
-    if (!exists) throw new ApiError(403, "Not authorized");
+    })
+    
+    if (!isAllowed) {
+        throw new ApiError(403, "Not authorized to chat with this user");
+    }
 
     const message = await getConversationMessagesService({
         userId : req.user._id,

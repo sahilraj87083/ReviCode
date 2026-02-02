@@ -7,10 +7,17 @@ export const PrivateSocket = (io, socket) => {
     socket.on('private:join', ({otherUserId}) => {
         if (!socket.userId) return;
         if (!mongoose.isValidObjectId(otherUserId)) return;
+        console.log(`user : ${otherUserId} joined private chat`)
 
         const room = getPrivateRoom(socket.userId, otherUserId);
         socket.join(room)
     });
+
+    socket.on("private:leave", ({ otherUserId }) => {
+        const room = getPrivateRoom(socket.userId, otherUserId);
+        socket.leave(room);
+    });
+
 
     socket.on("private:send" , async ({to, message}) => {
 
@@ -19,7 +26,7 @@ export const PrivateSocket = (io, socket) => {
         if (!message?.trim()) return;
 
         const saved = await createPrivateMessageService({
-            from : socket.userId,
+            senderId : socket.userId,
             to : to,
             message : message
         })
@@ -37,7 +44,7 @@ export const PrivateSocket = (io, socket) => {
         socket.to(room).emit("private:typing", socket.userId);
     });
 
-    socket.on("private:seen", async ({ messageIds }) => {
+    socket.on("private:seen", async ({ messageIds, otherUserId }) => {
         if (!socket.userId) return;
 
         await PrivateMessage.updateMany(
