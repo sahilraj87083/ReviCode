@@ -87,8 +87,13 @@ function ChatSidebar({ inbox = [], activeChat, onSelect }) {
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-center">
                   <p className="text-white font-medium truncate">
-                    {chat.user.fullName}
+                    {chat.user.fullName} 
                   </p>
+                  {chat.unreadCount > 0 && (
+                      <span className="bg-red-600 text-xs px-2 py-0.5 rounded-full">
+                        {chat.unreadCount}
+                      </span>
+                    )}
 
                   {chat.isNew && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full

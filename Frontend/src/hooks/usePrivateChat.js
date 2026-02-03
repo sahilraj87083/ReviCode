@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSocketContext } from '../contexts/socket.context.jsx'
 import { getPrivateMessagesService } from "../services/privateMessage.services.js";
 import { useUserContext } from "../contexts/UserContext";
@@ -9,6 +9,28 @@ export const usePrivateChat = ({ otherUserId }) => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const { user } = useUserContext();
+    const [isTyping, setIsTyping] = useState(false);
+
+    const seenRef = useRef(false);
+
+    useEffect(() => {
+        if (!socket || !otherUserId || messages.length === 0) return;
+        if (seenRef.current) return;
+
+        const unreadIds = messages
+            .filter(m => !m.fromMe && m.status !== "read")
+            .map(m => m.id);
+
+        if (unreadIds.length > 0) {
+            socket.emit("private:seen", {
+                messageIds: unreadIds,
+                otherUserId
+            });
+        }
+
+        seenRef.current = true;
+    }, [messages, otherUserId, socket]);
+
 
     const normalizePrivateMessage = useCallback(
         (msg) => ({
@@ -45,6 +67,9 @@ export const usePrivateChat = ({ otherUserId }) => {
     useEffect(() => {
         if (!otherUserId) return;
 
+        seenRef.current = false;
+
+
         setMessages([]);
         setPage(1);
         setHasMore(true);
@@ -56,24 +81,47 @@ export const usePrivateChat = ({ otherUserId }) => {
 
 
         socket.emit('private:join' , { otherUserId });
+        const typingHandler = (fromUserId) => {
+        if (String(fromUserId) !== String(otherUserId)) return;
+            setIsTyping(true);
+
+            // auto clear after 1.5s
+            setTimeout(() => setIsTyping(false), 1500);
+        };
+
+        socket.on("private:typing", typingHandler);
+
 
         const handler = (msg) => {
             if (msg.conversationId !== activeRoom) return;
-            setMessages((prev) => [...prev , normalizePrivateMessage(msg) ])
-        }
+
+            const normalized = normalizePrivateMessage(msg);
+
+            setMessages(prev => {
+                //  DEDUPE BY MESSAGE ID
+                if (prev.some(m => m.id === normalized.id)) {
+                    return prev;
+                }
+                return [...prev, normalized];
+            });
+        };
+
 
         socket.on('private:receive', handler)
 
         return () => {
-            socket.emit("private:leave", { otherUserId });
-        };
+  socket.off("private:receive", handler);
+  socket.off("private:typing", typingHandler);
+  socket.emit("private:leave", { otherUserId });
+};
 
-    }, [otherUserId, loadMore])
+
+    }, [otherUserId])
 
     const send = ( message ) => {
         if (!message?.trim()) return;
         socket.emit("private:send", { to: otherUserId, message });
     }
 
-    return { messages, send, loadMore, hasMore };
+    return { messages, send, loadMore, hasMore, isTyping };
 }

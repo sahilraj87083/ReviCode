@@ -1,6 +1,7 @@
 import { createPrivateMessageService } from "../services/privateMessage.service.js";
 import { getPrivateRoom } from "../utils/getPrivateRoom.js";
 import mongoose from "mongoose";
+import { PrivateMessage } from "../models/privateMessage.model.js";
 
 export const PrivateSocket = (io, socket) => {
     

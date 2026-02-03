@@ -7,7 +7,13 @@ function Messages() {
   const containerRef = useRef(null);
   const [activeChat, setActiveChat] = useState();
   const { inbox } = useInbox()
-  const { messages, send, loadMore, hasMore } = usePrivateChat({ otherUserId : activeChat?.user?._id})
+  const { messages, send, loadMore, hasMore, isTyping } = usePrivateChat({ otherUserId : activeChat?.user?._id})
+
+  const handleSelectChat = (chat) => {
+      // Optimistic unread clear
+      chat.unreadCount = 0;
+      setActiveChat(chat);
+  };
 
 
   return (
@@ -18,10 +24,10 @@ function Messages() {
       <ChatSidebar
         inbox = {inbox}
         activeChat={activeChat}
-        onSelect={setActiveChat}
+        onSelect={handleSelectChat}
       />
 
-      <ChatWindow activeChat={activeChat} messages = {messages} send = {send} />
+      <ChatWindow activeChat={activeChat} messages = {messages} send = {send} isTyping={isTyping} />
     </div>
   );
 }

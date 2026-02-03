@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {Input} from '../'
 
-function MessageInput({ onSend }) {
+function MessageInput({ onSend, onTyping }) {
   const [message, setMessage] = useState("");
 
   const sendMessage = () => {
@@ -9,6 +9,10 @@ function MessageInput({ onSend }) {
     onSend(message);
     setMessage("");
   };
+  const handleChange = (e) => {
+    setMessage(e.target.value);
+    onTyping?.();
+};
 
   return (
     <div className="p-4 border-t border-slate-800 bg-slate-900">
@@ -16,7 +20,7 @@ function MessageInput({ onSend }) {
         <div className="flex-1">
           <Input
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleChange}
             placeholder="Type a message..."
             isChat
             onSend={sendMessage}

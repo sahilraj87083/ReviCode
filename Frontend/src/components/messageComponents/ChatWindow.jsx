@@ -1,8 +1,9 @@
 import MessageInput from "./MessageInput";
 import MessagesArea from "./MessagesArea";
+import { useSocketContext } from "../../contexts/socket.context";
 
-function ChatWindow({ activeChat , messages, send}) {
-  
+function ChatWindow({ activeChat , messages, send, isTyping}) {
+  const {socket} = useSocketContext()
 
   if (!activeChat) {
     return (
@@ -21,8 +22,16 @@ function ChatWindow({ activeChat , messages, send}) {
       </div>
 
       <MessagesArea messages={messages} />
+      {isTyping && (
+        <div className="px-4 text-s italic font-semibold text-green-600 mb-2">
+          typing…
+        </div>
+      )}
 
       <MessageInput
+        onTyping={() =>
+            socket.emit("private:typing", { to: activeChat.user._id })
+        }
         onSend={(text) => send(text)}
       />
     </section>

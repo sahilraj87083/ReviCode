@@ -38,6 +38,20 @@ const getInbox = asyncHandler(async (req, res) => {
                 },
                 receiverId : {
                     $first : '$receiverId'
+                },
+                unreadCount: {
+                    $sum: {
+                        $cond: [
+                            {
+                                $and: [
+                                    { $ne: ["$senderId", userId] }, // sent by other user
+                                    { $ne: ["$status", "read"] }    // not read
+                                ]
+                            },
+                            1,
+                            0
+                        ]
+                    }
                 }
             }
         },
@@ -64,6 +78,7 @@ const getInbox = asyncHandler(async (req, res) => {
         {
             $project : {
                 conversationId: "$_id",
+                unreadCount: 1,
                 lastMessage: 1,
                 lastAt: 1,
                 user : {
@@ -107,6 +122,7 @@ const getInbox = asyncHandler(async (req, res) => {
     const inbox = [
         ...conversations.map(c => ({
             conversationId: c.conversationId,
+            unreadCount: c.unreadCount,
             lastMessage: c.lastMessage,
             lastAt: c.lastAt,
             user: c.user,
@@ -116,6 +132,7 @@ const getInbox = asyncHandler(async (req, res) => {
         ...newUsers.map(u => ({
             conversationId: null,
             lastMessage: "start conversation",
+            unreadCount: 0,
             lastAt: null,
             user: u,
             isNew: true
@@ -146,7 +163,7 @@ const getPrivateMessages = asyncHandler(async (req, res) => {
             { followerId: otherUserId, followingId: req.user._id }
         ]
     })
-    
+
     if (!isAllowed) {
         throw new ApiError(403, "Not authorized to chat with this user");
     }
