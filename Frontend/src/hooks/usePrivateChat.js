@@ -6,8 +6,6 @@ import { useUserContext } from "../contexts/UserContext";
 export const usePrivateChat = ({ otherUserId }) => {
     const { socket } = useSocketContext()
     const [messages, setMessages] = useState([])
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
     const { user } = useUserContext();
     const [isTyping, setIsTyping] = useState(false);
 
@@ -46,23 +44,6 @@ export const usePrivateChat = ({ otherUserId }) => {
         [user?._id]
     );
 
-    const loadMore = useCallback(
-        async (p = 1) => {
-            if (!otherUserId || !hasMore) return;
-
-            const res = await getPrivateMessagesService(otherUserId, p);
-            if (res.length === 0) {
-                setHasMore(false);
-                return;
-            }
-
-            const normalized = res.map(normalizePrivateMessage);
-            setMessages(prev => [...normalized, ...prev]);
-            setPage(p + 1);
-        },
-        [otherUserId, hasMore, normalizePrivateMessage]
-     );
-
 
     useEffect(() => {
         if (!otherUserId) return;
@@ -71,9 +52,16 @@ export const usePrivateChat = ({ otherUserId }) => {
 
 
         setMessages([]);
-        setPage(1);
-        setHasMore(true);
-        loadMore(1);
+
+        const fetchAllMessages = async () => {
+            const res = await getPrivateMessagesService(otherUserId);
+            if (res && res.length > 0) {
+                const normalized = res.map(normalizePrivateMessage);
+                setMessages(normalized);
+            }
+        };
+
+        fetchAllMessages();
 
         const activeRoom = otherUserId
             ? `private:${[user._id, otherUserId].sort().join(":")}`
@@ -110,10 +98,10 @@ export const usePrivateChat = ({ otherUserId }) => {
         socket.on('private:receive', handler)
 
         return () => {
-  socket.off("private:receive", handler);
-  socket.off("private:typing", typingHandler);
-  socket.emit("private:leave", { otherUserId });
-};
+            socket.off("private:receive", handler);
+            socket.off("private:typing", typingHandler);
+            socket.emit("private:leave", { otherUserId });
+        };
 
 
     }, [otherUserId])
@@ -123,5 +111,5 @@ export const usePrivateChat = ({ otherUserId }) => {
         socket.emit("private:send", { to: otherUserId, message });
     }
 
-    return { messages, send, loadMore, hasMore, isTyping };
+    return { messages, send,  isTyping };
 }

@@ -21,7 +21,10 @@ function ChatWindow({ activeChat , messages, send, isTyping}) {
         <h2 className="text-white font-semibold">{activeChat?.user?.fullName}</h2>
       </div>
 
-      <MessagesArea messages={messages} />
+      <MessagesArea 
+        messages={messages} chatType="private"
+       />
+
       {isTyping && (
         <div className="px-4 text-s italic font-semibold text-green-600 mb-2">
           typing…

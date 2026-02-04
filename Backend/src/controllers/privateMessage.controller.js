@@ -151,9 +151,6 @@ const getInbox = asyncHandler(async (req, res) => {
 
 const getPrivateMessages = asyncHandler(async (req, res) => {
     const { otherUserId } = req.params
-    const {p , l} = req.query
-
-    const {skip , page , limit} = paginate({p , l});
 
     const room = getPrivateRoom(req.user._id, otherUserId);
 
@@ -171,8 +168,8 @@ const getPrivateMessages = asyncHandler(async (req, res) => {
     const message = await getConversationMessagesService({
         userId : req.user._id,
         room,
-        limit,
-        skip
+        limit: 0,
+        skip : 0
     });
 
     return res.status(200).json(
