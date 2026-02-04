@@ -4,6 +4,11 @@ import mongoose from "mongoose";
 import { PrivateMessage } from "../models/privateMessage.model.js";
 
 export const PrivateSocket = (io, socket) => {
+
+    // 1. Join a personal room for global notifications (Inbox updates)
+    if (socket.userId) {
+        socket.join(socket.userId.toString());
+    }
     
     socket.on('private:join', ({otherUserId}) => {
         if (!socket.userId) return;
@@ -36,8 +41,22 @@ export const PrivateSocket = (io, socket) => {
         // notify sender: delivered 
        socket.emit("private:delivered", saved._id);
 
-        // notify both users
+        // notify both users in the specific chat room (for the Chat Window)
        io.to(room).emit("private:receive", saved)
+
+       // 2. EMIT INBOX UPDATE to both users' personal rooms
+       // This updates the sidebar for both the sender (to show "You: ...") and receiver
+       const inboxUpdate = {
+           senderId: socket.userId,
+           receiverId: to,
+           message: saved.message,
+           createdAt: saved.createdAt,
+           // We pass the populated sender object so the frontend can create a new chat item if needed
+           sender: saved.senderId 
+       };
+
+       io.to(to.toString()).emit("inbox:update", inboxUpdate);
+       io.to(socket.userId.toString()).emit("inbox:update", inboxUpdate);
     })
 
     socket.on("private:typing", ({ to }) => {
