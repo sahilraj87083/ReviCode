@@ -63,18 +63,18 @@ function MobileSidebar({ isOpen, onClose, user }) {
       {/* Sidebar Drawer - Z-Index 9999 (Maximum Priority) */}
       <div
         ref={sidebarRef}
-        className="fixed top-0 right-0 h-full w-[75%] max-w-[300px] bg-zinc-900 border-l border-slate-800 z-[9999] transform translate-x-full shadow-2xl md:hidden flex flex-col"
+        className="fixed top-0 right-0 h-full w-[75%] max-w-[300px] rounded-xl bg-[rgb(13,21,35)] border-l border-slate-800 z-[9999] transform translate-x-full shadow-2xl md:hidden flex flex-col"
       >
         {/* Header of Sidebar */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-zinc-950">
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-zinc-930">
           <span className="text-lg font-bold text-slate-100">Menu</span>
-          <button onClick={onClose} className="text-slate-400 text-2xl">
+          <button onClick={onClose} className="text-2xl font-bold text-white">
             <i className="ri-close-line"></i>
           </button>
         </div>
 
         {/* User Info Snippet */}
-        <div className="p-6 flex flex-col items-center border-b border-slate-800 bg-zinc-900">
+        <div className="p-6 flex flex-col items-center border-b border-slate-800 bg-[rgb(13,21,35)]">
           <img
             src={user?.avatar?.url}
             alt="avatar"
