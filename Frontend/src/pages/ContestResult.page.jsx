@@ -37,7 +37,6 @@ function ContestResultPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 px-6 py-10 space-y-6">
-        {console.log(data)}
       <ContestResultHeader contest={contest} />
 
       <MyResultCard
@@ -50,7 +49,7 @@ function ContestResultPage() {
       )}
 
       <QuestionBreakdown
-      questions={data?.contest?.questionIds}
+        questions={data?.contest?.questionIds}
         attempts={data?.myResult?.attempts
         }
       />
