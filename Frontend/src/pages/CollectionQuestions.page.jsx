@@ -112,23 +112,30 @@ function CollectionQuestions({mode = 'owner'}) {
               </div>
 
               {/* Action */}
+
               <div className="flex gap-3 w-full sm:w-auto">
                 <Input
-                  placeholder="Search collections..."
+                  placeholder="Search Questions..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full sm:w-64"
                 />
-                <button
-                onClick={() => setOpenAddQuestionPanel(true)}
-                className="self-start px-5 py-2.5
-                bg-red-600 hover:bg-red-500
-                rounded-md text-sm font-semibold
-                transition"
-                >
-                + Add Question
-                </button>
-              </div>
+                { mode === 'owner' && (
+                  <button
+                    onClick={() => setOpenAddQuestionPanel(true)}
+                    className="self-start px-5 py-2.5
+                    bg-red-600 hover:bg-red-500
+                    rounded-md text-sm font-semibold
+                    transition"
+                    >
+                    + Add Question
+                  </button>
+                )
+
+                }
+                
+            </div>
+              
           </div>
 
           {/* Meta row */}
