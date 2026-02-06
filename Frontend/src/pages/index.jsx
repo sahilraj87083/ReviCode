@@ -17,6 +17,7 @@ import ResetPassword from './ResetPassword.page.jsx'
 import EditProfile from './EditProfile.page.jsx'
 import VerifyEmail from './VerifyEmail.page.jsx'
 import ForgotPassword from './ForgotPassword.page.jsx'
+import ContestResultPage from './ContestResult.page.jsx'
 
 export {
     Home,
@@ -37,5 +38,6 @@ export {
     ResetPassword,
     EditProfile,
     ForgotPassword,
-    VerifyEmail
+    VerifyEmail,
+    ContestResultPage
 }

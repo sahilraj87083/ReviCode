@@ -1,7 +1,24 @@
 import {Button} from "../";
-
+import { useNavigate } from "react-router-dom";
 
 function ContestRow({ contest, onNavigate }) {
+  const navigate = useNavigate()
+
+  const Clickhandler = () => {
+    if(contest.status === 'ended'){
+      navigate(`/contests/${contest._id}/leaderboard`)
+    }
+    else if (contest.status === "upcoming") {
+          // lobby
+          if (contest.visibility === "private") {
+              navigate(`/user/contests/private/${contest._id}`);
+          } else {
+              navigate(`/user/contests/public/${contest._id}`);
+          }
+    }else{
+      navigate(`/contests/${contest._id}/live`);
+    }
+  }
 
     const label =
       contest.status === "upcoming"
@@ -27,7 +44,7 @@ function ContestRow({ contest, onNavigate }) {
           </div>
         </div>
 
-        <Button size="sm" variant="secondary" onClick={() => onNavigate(contest)}>
+        <Button size="sm" variant="secondary" onClick={Clickhandler}>
           {action}
         </Button>
       </div>

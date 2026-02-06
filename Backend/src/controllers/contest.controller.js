@@ -118,72 +118,167 @@ const startContest = asyncHandler(async (req, res) => {
 
 
 const getContestLeaderboard = asyncHandler(async (req, res) => {
+    const { contestId } = req.params;
+    const userId = req.user._id;
 
-    const {contestId} = req.params;
-
-    if(!isValidObjectId(contestId)){
+    if (!isValidObjectId(contestId)) {
         throw new ApiError(400, "Invalid contest ID");
     }
 
-    const contest = await Contest.findById(contestId).select("visibility owner");
+    // ---------------- CONTEST ----------------
+    const contest = await Contest.findById(contestId)
+  .select(
+    "title visibility owner durationInMin status contestCode questionIds"
+  )
+  .populate({
+    path: "questionIds",
+    select: "title difficulty", // 👈 only what you want
+  })
+  .lean();
+
 
     if (!contest) {
         throw new ApiError(404, "Contest not found");
     }
 
+    // ---------------- AUTH ----------------
     if (
         contest.visibility === "private" &&
-        contest.owner.toString() !== req.user._id.toString()
+        contest.owner.toString() !== userId.toString()
     ) {
         throw new ApiError(403, "This contest is private");
     }
 
+    const contestObjectId = new mongoose.Types.ObjectId(contestId);
 
-    const leaderboard = await ContestParticipant.aggregate(
-        [
-            {
-                $match : {
-                    contestId : new mongoose.Types.ObjectId(contestId),
-                    submissionStatus : 'submitted'
-                }
+    // ---------------- LEADERBOARD ----------------
+    const leaderboard = await ContestParticipant.aggregate([
+        {
+            $match: {
+                contestId: contestObjectId,
+                submissionStatus: "submitted",
             },
-            {
-                $sort: {
-                    score: -1,
-                    timeTaken: 1
-                }
-            },
-            {
-                $lookup : {
-                    from : 'users',
-                    localField : 'userId',
-                    foreignField : '_id',
-                    as : 'user',
-                }
-            },
-            {
-                $unwind : '$user'
-            },
-            {
-                $project: {
-                    _id: 0,
-                    score: 1,
-                    timeTaken: 1,
-                    solvedCount: 1,
-                    "user.fullName": 1,
-                    "user.username": 1,
-                    "user.avatar": 1
-                }
-            }
-        ]
-    )
+        },
 
-    return res.status(200).json(
-        new ApiResponse(200, "Leaderboard fetched", leaderboard)
+        // ---- Join users ----
+        {
+            $lookup: {
+                from: "users",
+                localField: "userId",
+                foreignField: "_id",
+                as: "user",
+            },
+        },
+        { $unwind: "$user" },
+
+        // ---- Join attempts (OPTIMIZED) ----
+        {
+            $lookup: {
+                from: "questionattempts",
+                let: { uid: "$userId" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ["$contestId", contestObjectId] },
+                                    { $eq: ["$userId", "$$uid"] },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            questionId: 1,
+                            status: 1,
+                            timeSpent: 1,
+                        },
+                    },
+                ],
+                as: "attempts",
+            },
+        },
+
+        // ---- Derived fields ----
+        {
+            $addFields: {
+                totalTimeSpent: {
+                    $cond: [
+                        { $gt: [{ $size: "$attempts" }, 0] },
+                        { $sum: "$attempts.timeSpent" },
+                        0,
+                    ],
+                },
+            },
+        },
+
+        // ---- Sort leaderboard ----
+        {
+            $sort: {
+                score: -1,
+                totalTimeSpent: 1,
+            },
+        },
+
+        // ---- Final shape ----
+        {
+            $project: {
+                _id: 0,
+                userId: "$user._id",
+                score: 1,
+                solvedCount: 1,
+                totalTimeSpent: 1,
+                attempts: 1,
+                user: {
+                    fullName: "$user.fullName",
+                    username: "$user.username",
+                    avatar: "$user.avatar",
+                },
+            },
+        },
+    ]);
+
+    // ---------------- PARTICIPATION CHECK ----------------
+    const myIndex = leaderboard.findIndex(
+        p => String(p.userId) === String(userId)
     );
 
-})
+    if (myIndex === -1) {
+        throw new ApiError(403, "You did not participate in this contest");
+    }
 
+    const myResult = {
+        rank: myIndex + 1,
+        ...leaderboard[myIndex],
+    };
+
+    // ---------------- PRIVATE CONTEST ----------------
+    if (contest.visibility === "private") {
+        return res.status(200).json(
+            new ApiResponse(200, "Result fetched", {
+                type: "private",
+                contest,
+                myResult,
+            })
+        );
+    }
+
+    // ---------------- GROUP CONTEST ----------------
+    const rankedLeaderboard = leaderboard.map((p, idx) => ({
+        rank: idx + 1,
+        ...p,
+    }));
+
+    return res.status(200).json(
+        new ApiResponse(200, "Result fetched", {
+            type: "group",
+            contest,
+            leaderboard: rankedLeaderboard,
+            myResult,
+        })
+    );
+});
 
 const getContestById = asyncHandler(async (req, res) => {
 

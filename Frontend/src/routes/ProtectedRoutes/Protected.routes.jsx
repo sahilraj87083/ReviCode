@@ -11,7 +11,8 @@ import {
     PrivateContestLobby,
     Questions,
     ContestListPage,
-    EditProfile
+    EditProfile,
+    ContestResultPage
 } from '../../pages'
 
 import ProtectedLayout from "./ProtectedLayout"
@@ -25,6 +26,7 @@ export const ProtectedRoutes = (
         <Route path="/contests/created" element={<ContestListPage type="created" />} />
         <Route path="/contests/joined" element={<ContestListPage type="joined" />} />
         <Route path="/contests/:contestId/live" element = { <LiveContest/> }/>
+        <Route path="/contests/:contestId/leaderboard" element = { <ContestResultPage/> }/>
         <Route path="/user/contests/public/:contestId" element = { <GroupContestLobby/> }/>
         <Route path="/user/contests/private/:contestId" element = { <PrivateContestLobby/> }/>
 

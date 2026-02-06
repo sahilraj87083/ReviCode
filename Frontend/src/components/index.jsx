@@ -46,6 +46,12 @@ import AccountSection from './EditProfileComponents/AccountSection'
 import ImageUploadModal from './EditProfileComponents/ImageUploadModal'
 
 
+import ContestResultHeader from './ContestResultPageComponents/ContestResultHeader'
+import MyResultCard from './ContestResultPageComponents/MyResultCard'
+import LeaderboardTable from './ContestResultPageComponents/LeaderboardTable'
+import QuestionBreakdown from './ContestResultPageComponents/QuestionBreakdown'
+
+
 export {
     Header,
     Footer,
@@ -92,5 +98,12 @@ export {
     EmailSection,
     AccountSection,
     DangerZone,
-    ImageUploadModal
+    ImageUploadModal,
+
+
+
+    ContestResultHeader,
+    MyResultCard,
+    LeaderboardTable,
+    QuestionBreakdown
 }
