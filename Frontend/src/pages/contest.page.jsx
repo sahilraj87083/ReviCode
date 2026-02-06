@@ -62,16 +62,23 @@ function Contests() {
 
     useEffect(() => {
       (async () => {
-          const data = await getActiveContestsService();
-          setActiveContests(data.contests);
+          try {
+            const [contestData, collectionsData] = await Promise.all([
+                getActiveContestsService(),
+                getMyCollections()
+            ]);
 
-          const myCollections = await getMyCollections();
-          setCollections(myCollections);
+            setActiveContests(contestData.contests || []); 
+            setCollections(collectionsData);
+            
+            setCollectionOptions(collectionsData.map((c) => ({
+                label: c.name,
+                value: c._id,
+            })));
 
-          setCollectionOptions(myCollections.map((c) => ({
-              label: c.name,
-              value: c._id,
-          })))
+          } catch (error) {
+            console.error("Failed to load data", error);
+          }
           
       })();
 

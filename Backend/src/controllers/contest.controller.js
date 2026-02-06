@@ -290,10 +290,25 @@ const getActiveContests = asyncHandler(async (req, res) => {
     const { page, limit } = req.query;
     const { skip, limit: l, page: p } = paginate({ page, limit });
 
+    // 1. Get IDs of contests the user is participating in
+    const participatedContestIds = await ContestParticipant.find({ 
+        userId: req.user._id 
+    }).distinct('contestId');
+
+    // 2. Create a filter that matches:
+    // (Created by Me OR Participated by Me) AND (Is Active)
     const filter = {
-        owner: req.user._id,
-        status: { $in: ["upcoming", "live"] }
+        $and: [
+            {
+                $or: [
+                    { owner: req.user._id },                     // Created by user
+                    { _id: { $in: participatedContestIds } }     // Participated by user
+                ]
+            },
+            { status: { $in: ["upcoming", "live"] } }           // Must be active
+        ]
     };
+    
     const [contests, total] = await Promise.all([
         Contest.find(filter)
         .select("title status startsAt endsAt visibility")
