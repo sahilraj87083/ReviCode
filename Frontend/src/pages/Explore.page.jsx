@@ -98,19 +98,12 @@ function Explore() {
     <div className="h-[100dvh] bg-slate-950 text-white overflow-hidden relative font-sans selection:bg-red-500/30">
       
       {/* --- TOP HEADER --- */}
-      <header className="absolute top-0 left-0 right-0 z-50 px-4 py-4 flex justify-between items-start pointer-events-none">
+      {/* FIX: Added 'top-14' for mobile to clear fixed header, 'md:top-4' for desktop */}
+      <header className="absolute top-16 md:top-4 left-0 right-0 z-40 px-4 flex justify-center md:justify-end items-start pointer-events-none">
         
-        {/* LEFT: Logo */}
-        <div className="pointer-events-auto bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
-            <div className="font-bold text-sm tracking-tight flex items-center gap-1">
-                <Code2 size={16} className="text-red-500" />
-                <span>Revi<span className="text-red-500">Clash</span></span>
-            </div>
-        </div>
-
-        {/* CENTER: TOGGLE (Improved UI) */}
+        {/* CENTER: TOGGLE */}
         {!isSearchOpen && (
-            <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 top-4 flex items-center bg-black/40 backdrop-blur-xl rounded-full p-1 border border-white/10 shadow-2xl">
+            <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 flex items-center bg-black/40 backdrop-blur-xl rounded-full p-1 border border-white/10 shadow-2xl z-50">
                 <button 
                     onClick={() => setActiveTab("general")}
                     className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 ${
@@ -135,7 +128,7 @@ function Explore() {
         )}
 
         {/* RIGHT: SEARCH BAR */}
-        <div className="pointer-events-auto flex justify-end min-w-[40px]">
+        <div className="pointer-events-auto ml-auto flex justify-end min-w-[40px] z-50">
             <div 
                 ref={searchContainerRef}
                 className={`h-10 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center overflow-hidden shadow-lg`}

@@ -6,9 +6,10 @@ import Select from './Others/Select'
 import QuestionRow from './CollectionPageComponents/QuestionRow'
 import AddQuestionPanel from './CollectionPageComponents/AddQuestionPanel'
 
-import LiveContests from './ExploreComponents/LiveContests'
-import PublicCollections from './ExploreComponents/PublicCollections'
-import TopCreators from './ExploreComponents/TopCreator'
+import LiveContests from './CommunityComponents/LiveContests'
+import PublicCollections from './CommunityComponents/PublicCollections'
+import TopCreators from './CommunityComponents/TopCreator'
+import QuestionsList from './CommunityComponents/QuestionsList'
 
 
 import StatCard from './DashBoardComponents/StatCard'
@@ -64,6 +65,7 @@ export {
     LiveContests,
     PublicCollections,
     TopCreators,
+    QuestionsList,
 
     StatCard,
     ActionCard,

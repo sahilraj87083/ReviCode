@@ -2,10 +2,17 @@ import { NavLink, useLocation } from "react-router-dom";
 import logo from "../../assets/logo3.png";
 import ProfileDropdown from "./HeaderDropDown";
 import { useUserContext } from "../../contexts/UserContext";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 import { useRef, useState } from "react";
 import MobileSidebar from "./MobileSidebar";
+import { 
+  Bell, 
+  Code2, 
+  Users, 
+  Trophy, 
+  MessageSquare, 
+  Compass, 
+  Home 
+} from "lucide-react"; 
 
 function Header() {
   const headerRef = useRef(null);
@@ -14,48 +21,42 @@ function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
-  useGSAP(
-    () => {
-      if (!isAuthReady) return;
-      const tl = gsap.timeline();
-
-      if (window.innerWidth > 768) {
-        tl.from(headerRef.current, {
-          y: -60,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
-        })
-          .from(
-            logoRef.current,
-            { scale: 0.85, opacity: 0, duration: 0.5, ease: "back.out(1.7)" },
-            "-=0.4"
-          )
-          .from(
-            ".nav-anim",
-            {
-              y: -10,
-              opacity: 0,
-              stagger: 0.1,
-              duration: 0.4,
-              ease: "power2.out",
-            },
-            "-=0.3"
-          );
-      }
-    },
-    { dependencies: [isAuthReady, isAuthenticated], scope: headerRef }
-  );
-
-  // FIX 1: Responsive height for loading state to prevent layout jumps/white gaps
   if (!isAuthReady) {
-    return <header className="h-16 md:h-20 bg-slate-900 border-b border-slate-700" />;
+    return <header className="h-16 md:h-20 bg-slate-950 border-b border-white/5" />;
   }
 
-  const mobileLinkClass = ({ isActive }) =>
-    `flex flex-col items-center justify-center w-full h-full text-2xl transition-colors ${
-      isActive ? "text-red-500" : "text-slate-400 hover:text-slate-200"
-    }`;
+  // Helper for Desktop Links
+  const NavItem = ({ to, label }) => (
+    <NavLink 
+      to={to} 
+      className={({ isActive }) => 
+        `nav-anim relative px-3 py-2 text-sm font-medium transition-all duration-300 hover:text-white ${
+          isActive ? "text-white" : "text-slate-400"
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {label}
+          <span className={`absolute bottom-0 left-0 h-[2px] bg-red-500 transition-all duration-300 ${isActive ? "w-full" : "w-0"}`}></span>
+        </>
+      )}
+    </NavLink>
+  );
+
+  // Helper for Mobile Bottom Nav Links
+  const MobileLink = ({ to, icon: Icon }) => (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex flex-col items-center justify-center w-full h-full transition-all duration-200 ${
+          isActive ? "text-red-500 scale-110" : "text-slate-500 hover:text-slate-300"
+        }`
+      }
+    >
+      <Icon size={24} strokeWidth={1.5} />
+    </NavLink>
+  );
 
   return (
     <>
@@ -63,33 +64,51 @@ function Header() {
           DESKTOP HEADER
       ======================== */}
       <header
-        ref={headerRef}
-        className="hidden md:block sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 backdrop-blur"
+        // Added animate-slide-down directly via CSS class (defined in index.css previously)
+        className="hidden md:block sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5 animate-slide-down"
       >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <NavLink to={isAuthenticated ? "/" : "/"} className="flex items-center gap-3" ref={logoRef}>
-            <img src={logo} alt="ReviClash Logo" className="h-12 w-auto object-contain" />
-            <span className="text-xl font-bold tracking-wide text-slate-100">ReviClash</span>
+          
+          {/* LOGO */}
+          <NavLink to={isAuthenticated ? "/" : "/"} className="flex items-center gap-3 group animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <div className="relative">
+                <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <img src={logo} alt="ReviClash" className="relative h-10 w-auto object-contain" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white group-hover:text-red-50 opacity-90 transition-colors">
+              Revi<span className="text-red-500">Clash</span>
+            </span>
           </NavLink>
 
-          <nav className="flex items-center gap-6 text-sm">
-            <NavLink to="/" className={({ isActive }) => `nav-anim nav-link ${isActive ? "is-active" : ""}`}>Home</NavLink>
-            <NavLink to="/explore" className={({ isActive }) => `nav-anim nav-link ${isActive ? "is-active" : ""}`}>Explore</NavLink>
+          {/* NAVIGATION */}
+          <nav className="flex items-center gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <NavItem to="/" label="Home" />
+            <NavItem to="/explore" label="Explore" />
+            <NavItem to="/community" label="Community" />
 
             {!isAuthenticated ? (
-              <>
-                <NavLink className={({ isActive }) => `nav-anim nav-link ${isActive ? "is-active" : ""}`} to="/user/login">Login</NavLink>
-                <NavLink to="/user/register" className="nav-anim px-4 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-500">
-                  <p className="hover-underline">Sign Up</p>
+              <div className="flex items-center gap-4 ml-4">
+                <NavLink to="/user/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+                  Login
                 </NavLink>
-              </>
+                <NavLink to="/user/register" className="px-5 py-2 bg-red-600 text-white text-sm font-semibold rounded-full shadow-lg shadow-red-900/20 hover:bg-red-500 hover:shadow-red-500/30 transition-all transform hover:-translate-y-0.5">
+                  Get Started
+                </NavLink>
+              </div>
             ) : (
-              <>
-                <NavLink className={({ isActive }) => `nav-anim nav-link ${isActive ? "is-active" : ""}`} to="user/contests">Contests</NavLink>
-                <NavLink className={({ isActive }) => `nav-anim nav-link ${isActive ? "is-active" : ""}`} to="user/messages">Messages</NavLink>
-                <NavLink className={({ isActive }) => `nav-anim nav-link ${isActive ? "is-active" : ""}`} to="user/dashboard">Dashboard</NavLink>
+              <div className="flex items-center gap-5 ml-2 pl-4 border-l border-white/10">
+                <NavItem to="/user/contests" label="Contests" />
+                <NavItem to="/user/messages" label="Messages" />
+                
+                {/* Notification Bell */}
+                <button className="relative p-2 text-slate-400 hover:text-white transition-colors group">
+                    <Bell size={20} />
+                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-slate-950 animate-pulse"></span>
+                </button>
+
+                {/* Profile Dropdown */}
                 <ProfileDropdown user={user} />
-              </>
+              </div>
             )}
           </nav>
         </div>
@@ -99,46 +118,69 @@ function Header() {
           MOBILE VIEW
       ======================== */}
       
-      {/* 1. Mobile Top Bar - FIX: z-50 and solid bg-slate-900 to prevent white gaps */}
-      <div className="md:hidden sticky top-0 z-50 bg-slate-900 border-b border-slate-700 h-16 flex items-center px-4 justify-between">
-        <NavLink to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Logo" className="h-8 w-auto" />
-          <span className="text-lg font-bold text-slate-100">ReviClash</span>
+      {/* 1. Mobile Top Bar - FLOATING & TRANSPARENT */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 p-4 flex justify-between items-start pointer-events-none">
+        
+        {/* Logo Pill (Top Left) */}
+        <NavLink 
+          to="/" 
+          className="pointer-events-auto bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg flex items-center gap-2 transition-transform active:scale-95"
+        >
+            <div className="font-bold text-sm tracking-tight flex items-center gap-1 text-white">
+                <Code2 size={16} className="text-red-500" />
+                <span>Revi<span className="text-red-500">Clash</span></span>
+            </div>
         </NavLink>
-      </div>
-
-      {/* 2. Mobile Bottom Nav - FIX: z-50 */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-slate-900 border-t border-slate-800 z-50 flex justify-between items-center px-2 pb-safe">
-        <NavLink to="/" className={mobileLinkClass}><i className="ri-home-wifi-line"></i></NavLink>
-        <NavLink to="/explore" className={mobileLinkClass}><i className="ri-search-ai-2-line"></i></NavLink>
-
-        {isAuthenticated ? (
-          <>
-            <NavLink to="/user/contests" className={mobileLinkClass}><i className="ri-code-line"></i></NavLink>
-            <NavLink to="/user/messages" className={mobileLinkClass}><i className="ri-chat-1-line"></i></NavLink>
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className={`flex flex-col items-center justify-center w-full h-full ${
-                location.pathname.includes("dashboard") || location.pathname.includes("profile") 
-                ? "border-t-2 border-red-500 pt-[2px]" 
-                : ""
-              }`}
-            >
+        
+        {/* Profile Trigger (Top Right) */}
+        {isAuthenticated && (
+           <button 
+             onClick={() => setIsSidebarOpen(true)} 
+             className="pointer-events-auto relative p-1 rounded-full bg-slate-900/50 backdrop-blur-md border border-white/10 shadow-lg active:scale-95 transition-transform"
+           >
               <img
                 src={user?.avatar?.url}
                 alt="Profile"
-                className={`w-7 h-7 rounded-full object-cover border-2 ${
-                  isSidebarOpen ? "border-red-500" : "border-slate-500"
-                }`}
+                className="w-8 h-8 rounded-full object-cover"
               />
-            </button>
-          </>
-        ) : (
-           <NavLink to="/user/login" className={mobileLinkClass}><i className="ri-user-line"></i></NavLink>
+              <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-slate-950"></span>
+              </span>
+           </button>
         )}
       </div>
 
-      {/* 3. Mobile Sidebar Component */}
+      {/* 2. Mobile Bottom Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full h-[60px] bg-slate-950/95 backdrop-blur-lg border-t border-white/5 z-50 flex justify-around items-center px-2 pb-safe">
+        
+        {/* Left Links */}
+        <MobileLink to="/" icon={Home} />
+        <MobileLink to="/community" icon={Users} />
+        
+        {/* CENTER: EXPLORE FEED (Floating Button) */}
+        <NavLink 
+            to="/explore" 
+            className={({ isActive }) => `
+                relative -top-5 flex items-center justify-center w-12 h-12 rounded-full shadow-lg shadow-red-900/40 border border-red-500/20
+                transition-all duration-300 ${isActive ? "bg-red-500 text-white scale-110" : "bg-slate-800 text-slate-400"}
+            `}
+        >
+            <Compass size={24} />
+        </NavLink>
+        
+        {/* Right Links */}
+        {isAuthenticated ? (
+            <>
+                <MobileLink to="/user/contests" icon={Trophy} />
+                <MobileLink to="/user/messages" icon={MessageSquare} />
+            </>
+        ) : (
+            <MobileLink to="/user/login" icon={Code2} />
+        )}
+      </div>
+
+      {/* 3. Mobile Sidebar */}
       <MobileSidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 

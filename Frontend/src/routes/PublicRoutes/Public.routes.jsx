@@ -6,7 +6,8 @@ import {
     Explore,
     ResetPassword,
     ForgotPassword,
-    VerifyEmail
+    VerifyEmail,
+    CommunityPage
 }
 from '../../pages'
 import GuestOnlyWrapper from "./GuestOnlyWrapper";
@@ -35,6 +36,8 @@ export const PublicRoutes = (
         <Route path="/reset-password" element={ <ResetPassword /> } />
 
         <Route path="/verify-email" element={ <VerifyEmail /> } />
+        <Route path="/community" element={ <CommunityPage /> } />
+        
 
     </>
 )
