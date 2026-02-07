@@ -38,6 +38,7 @@ function MyProfile() {
       try {
         const data = await getUserProfileService(username);
         setProfile(data);
+        console.log(data)
       } finally {
         setLoadingProfile(false);
       }

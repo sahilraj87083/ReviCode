@@ -485,16 +485,6 @@ const getUserProfile = asyncHandler( async (req, res) => {
                 as : 'following'
             }
         },
-        // User stats
-        {
-            $lookup : {
-                from : 'userstats',
-                localField : '_id',
-                foreignField : 'userId',
-                as : 'stats'
-            }
-        },
-        // Collections
         {
             $lookup: {
                 from: "collections",
@@ -541,7 +531,6 @@ const getUserProfile = asyncHandler( async (req, res) => {
                         else: false,
                     }
                 },
-                stats: { $arrayElemAt: ["$stats", 0] },
             }
         },
         // Remove sensitive fields
