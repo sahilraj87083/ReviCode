@@ -88,53 +88,67 @@ const removeQuestionFromCollection = asyncHandler( async (req, res) => {
 
 })
 
-const bulkAddQuestions = asyncHandler( async (req, res) => {
+const bulkAddQuestions = asyncHandler(async (req, res) => {
     const { collectionId } = req.params;
     const { questionIds } = req.body;
 
+    // 1. Input Validation
     if (!Array.isArray(questionIds) || questionIds.length === 0) {
         throw new ApiError(400, "questionIds must be a non-empty array");
     }
 
     await validateCollection(collectionId, req.user._id);
 
+    // 2. Filter Valid IDs & Check Ownership/Existence
     const validIds = questionIds.filter(id => isValidObjectId(id));
-
     if (validIds.length === 0) {
         throw new ApiError(400, "No valid question IDs provided");
     }
 
+    // Note: This query restricts users to only adding questions they OWN. 
+    // In future if users should be able to add public questions, remove 'ownerId: req.user._id'
     const validQuestions = await Question.find({
         _id: { $in: validIds },
-        ownerId: req.user._id,
+        ownerId: req.user._id, 
         isDeleted: false,
     }).select("_id");
 
+    if (validQuestions.length === 0) {
+        throw new ApiError(404, "No valid questions found to add");
+    }
+
+    // 3. Prepare Bulk Docs
     const bulkDocs = validQuestions.map((q) => ({
         collectionId,
         questionId: q._id,
-    }))
+    }));
 
-    const result = await CollectionQuestion.insertMany(bulkDocs, {
-        ordered: false, // skip duplicates
-    }).catch((err) => err);
-
-    const inserted = Array.isArray(result) ? result.length : 0;
-
-    if (inserted > 0) {
-        await Collection.updateOne(
-            { _id: collectionId },
-            { $inc: { questionsCount: inserted } }
-        );
+    // 4. Perform Insert (Ignore Duplicates)
+    try {
+        await CollectionQuestion.insertMany(bulkDocs, {
+            ordered: false, // Continue inserting even if duplicates are found
+        });
+    } catch (error) {
+        // We catch errors here because 'ordered: false' throws if ANY duplicate is found.
+        // We don't care about duplicates, we just want to ensure the unique ones are in.
+        // We silence the error to proceed to the count update.
     }
+
+    // 5. THE FIX: Recalculate and Set Absolute Count
+    // This is safer than $inc because it corrects any previous drift automatically.
+    const currentTotal = await CollectionQuestion.countDocuments({ collectionId });
+
+    await Collection.findByIdAndUpdate(collectionId, {
+        $set: { questionsCount: currentTotal }
+    });
 
     return res.status(200).json(
         new ApiResponse(200, "Bulk add completed", {
-            added: inserted,
+            totalQuestions: currentTotal,
             attempted: bulkDocs.length,
         })
     );
-})
+});
 
 const bulkRemoveQuestions = asyncHandler( async (req, res) => {
     const { collectionId } = req.params;
