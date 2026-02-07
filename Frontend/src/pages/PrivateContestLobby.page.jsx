@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Copy } from "lucide-react";
+import { Copy, AlertTriangle, Clock, HelpCircle, Trophy } from "lucide-react";
 import { MetaCard, DifficultyBadge, Button } from "../components";
 import { getContestByIdService, startContestService } from "../services/contest.services";
 import toast from "react-hot-toast";
@@ -42,7 +42,7 @@ function PrivateContestLobby() {
     gsap.from(containerRef.current.children, {
       opacity: 0,
       y: 30,
-      stagger: 0.15,
+      stagger: 0.1,
       duration: 0.7,
       ease: "power3.out",
     });
@@ -61,51 +61,61 @@ function PrivateContestLobby() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white px-4 py-8 md:px-6 md:py-14"
-    >
-      <div className="max-w-4xl mx-auto space-y-8 md:space-y-10">
+    // FIX: Added proper mobile padding (pt-20) to avoid header collision
+    <div className="min-h-screen bg-slate-950 px-4 md:px-6 pt-20 pb-10 selection:bg-red-500/30">
+        
+      {/* Background Texture */}
+      <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+      </div>
+
+      <div ref={containerRef} className="relative z-10 max-w-3xl mx-auto space-y-8">
 
         {/* HEADER SECTION */}
-        <div className="text-center space-y-6">
-            
-            {/* Title */}
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold capitalize leading-tight">
-                    {contest?.title}
-                </h1>
-                <p className="text-slate-400 text-sm mt-2">
-                    All the best for your contest
-                </p>
-            </div>
+        <div className="text-center space-y-2">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                <Trophy size={14} /> Private Contest
+            </span>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white capitalize tracking-tight">
+                {contest?.title}
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base max-w-lg mx-auto">
+                Hosted by <span className="text-white font-medium">{contest?.owner?.fullName}</span>. Get ready to solve!
+            </p>
+        </div>
 
-            {/* Controls Container (Responsive Stack) */}
-            <div className="flex flex-col md:flex-row gap-6 justify-between items-center bg-slate-800/40 p-4 md:p-6 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+        {/* ACTION CARD */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 
-                {/* Code Box */}
-                <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                    <span className="text-slate-400 text-sm md:hidden">Contest Code</span>
-                    <div className="flex items-center gap-3 w-full md:w-auto justify-center">
-                        <span className="px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg font-mono text-lg tracking-widest text-slate-200">
+                {/* Code Section */}
+                <div className="flex flex-col items-center md:items-start gap-2 w-full md:w-auto text-center md:text-left">
+                    <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Contest Code</span>
+                    <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg p-1 pr-4 group hover:border-slate-700 transition-colors">
+                        <div className="bg-slate-800 p-2 rounded text-slate-400">
+                            <Copy size={18} />
+                        </div>
+                        <span className="font-mono text-lg text-white tracking-widest select-all">
                            {contest?.contestCode}
                         </span>
                         <button
-                        onClick={copyCode}
-                        className="p-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition active:scale-95"
-                        title="Copy contest code"
+                            onClick={copyCode}
+                            className="ml-2 text-xs text-blue-400 hover:text-blue-300 hover:underline"
                         >
-                        <Copy size={20} />
+                            Copy
                         </button>
                     </div>
                 </div>
+
+                {/* Divider (Mobile Only) */}
+                <div className="w-full h-px bg-slate-800 md:hidden"></div>
 
                 {/* Start Button */}
                 <div className="w-full md:w-auto">
                     <Button
                         onClick={startContestHandler}
-                        size="md"
-                        className="w-full md:w-auto shadow-lg shadow-blue-900/20"
+                        size="lg"
+                        className="w-full md:w-auto shadow-lg shadow-blue-600/20 bg-blue-600 hover:bg-blue-500 border-blue-500 font-semibold text-base py-3 px-8"
                     >
                         Start Contest
                     </Button>
@@ -113,25 +123,36 @@ function PrivateContestLobby() {
             </div>
         </div>
 
-        {/* META CARDS */}
-        <div className="grid grid-cols-2 gap-4 md:gap-6 text-center">
-          <MetaCard label="Questions" value={contest?.questions.length} />
-          <MetaCard label="Duration" value={`${contest?.durationInMin} min`} />
+        {/* META STATS */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 text-center hover:bg-slate-900 transition-colors">
+             <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
+                <HelpCircle size={20} />
+             </div>
+             <p className="text-2xl font-bold text-white">{contest?.questions.length}</p>
+             <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Questions</p>
+          </div>
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 text-center hover:bg-slate-900 transition-colors">
+             <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
+                <Clock size={20} />
+             </div>
+             <p className="text-2xl font-bold text-white">{contest?.durationInMin} <span className="text-sm font-medium text-slate-500">min</span></p>
+             <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Duration</p>
+          </div>
         </div>
 
-        {/* QUESTIONS PREVIEW */}
-        <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 md:p-6">
-          <h2 className="text-lg font-semibold mb-4 text-slate-200">
-            Questions Preview
-          </h2>
-
-          <div className="space-y-3">
+        {/* PREVIEW LIST */}
+        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="p-4 border-b border-slate-800 bg-slate-900/60">
+             <h3 className="font-semibold text-white text-sm uppercase tracking-wide">Problem Set</h3>
+          </div>
+          <div className="divide-y divide-slate-800/50">
             {contest?.questions.map((q, i) => (
               <div
                 key={q._id}
-                className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 text-sm bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/30 px-4 py-3 rounded-lg transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-slate-800/30 transition-colors"
               >
-                <span className="font-medium text-slate-300 truncate pr-2 w-full sm:w-auto">
+                <span className="text-sm text-slate-300 font-medium truncate pr-4">
                   {i + 1}. {q.title}
                 </span>
                 <DifficultyBadge level={q.difficulty} />
@@ -140,11 +161,13 @@ function PrivateContestLobby() {
           </div>
         </div>
 
-        {/* WARNING */}
-        <div className="border text-center border-red-500/30 bg-red-500/10 rounded-xl p-5 text-sm text-red-300 leading-relaxed">
-          <span className="block mb-1 text-red-400 font-semibold text-lg">⚠️ Important</span>
-          Timer will start as soon as you click <b>Start Contest</b>.  
-          You cannot pause or restart the contest once begun.
+        {/* WARNING ALERT */}
+        <div className="flex gap-4 p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 text-orange-200 text-sm leading-relaxed">
+            <AlertTriangle size={24} className="shrink-0 text-orange-500" />
+            <div>
+                <p className="font-bold text-orange-400 mb-1">Important Notice</p>
+                The timer will start immediately after you click <b>Start Contest</b>. Once begun, the contest cannot be paused or restarted. Ensure you have a stable internet connection.
+            </div>
         </div>
 
       </div>
